@@ -33,11 +33,6 @@ body {
     width: 100%;
 }
 
-.displayBox {
-    padding: 10px;
-    height: calc(1em + 10px);
-}
-
 #urlCon, #infoCon, #controlsCon, #settingsCon {
     background: #a0a0a0;
     padding-top:5px;
