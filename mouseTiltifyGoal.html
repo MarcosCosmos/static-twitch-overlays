@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- <link href="https://fonts.googleapis.com/css?family=Lobster+Two&display=swap" rel="stylesheet"> -->
+        <link rel="stylesheet" href="./core.css" title="Core CSS with default styles"/>
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js' type='text/javascript'></script>
+        <style type="text/css">
+            .backstroke {
+                z-index: 10;
+            }
+            
+            .forestroke {
+                z-index: 20;
+            }
+
+            .backstroke, .forestroke {
+                position: absolute;
+                width: 100%;
+                /* left: 0px;  */ /* stick it wherever it was positioned by default */
+                /* top: 0px;  */
+            }
+            #tiltifyMiniGoalDisplayBox {
+                background-color: #65a9d1;
+                color: white;
+                border-radius: 5px;
+                display: inline-block;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+
+            .countValue::before, .goalValue::before {
+                content: '$';
+            }
+        </style>
+        <script type="module">
+            import initialize from './core.js';
+            import TiltifyGoal from './TiltifyGoal.js';
+            import Logger from './Logger.js';
+            import TiltifyScanner from './TiltifyScanner.js';
+
+
+            let theLogger = new Logger();
+            let theScanner = new TiltifyScanner({
+                scanDelay: 30000
+            });
+            let theGoal = new TiltifyGoal({
+                prefix: 'tiltifyMiniGoal',
+                displayTitle: 'Wheel Spin',
+                settingsTitle: 'Tiltify Mini-Goal',
+                step: 'any',
+                min: 0,
+                useModulo: true,
+                tiltifyScanner: theScanner,
+                logger: theLogger
+            });
+
+            let listener = event => {
+                console.log(event);
+            };
+            theScanner.addListener(listener);
+
+            let config = {
+                hash: {
+                    goal: {
+                        type: 'showElm',
+                        target: 'tiltifyMiniGoalDisplayBox',
+                        default: false
+                    }
+                },
+                urls: {
+                    goal: {
+                        description: 'Show the goal',
+                        builder: base => `${base}#urls=0&goal`
+                    }
+                },
+                modules: [
+                    theGoal,
+                    theLogger,
+                    theScanner
+                ]
+            };
+            initialize(config);
+            theScanner.startScanning();
+        </script>
+    </head>
+    <body>
+    </body>
+</html>

@@ -1,0 +1,84 @@
+body {
+    /* background: black; */
+    /* color: black;
+    font-family: Verdana, Geneva, Tahoma, sans-serif; */
+    /* background: linear-gradient(90deg, rgba(230,215,36,1) 0%, rgba(230,215,36,1) 19.95%, rgba(0,0,0,1) 19.95%, rgba(0,0,0,1) 20.05%, rgba(244,140,213,1) 20.05%, rgba(244,140,213,1) 100%); */
+    margin: 0;
+    padding: 0;
+    /* overflow: hidden; */
+    /* background: url(https://cdn.discordapp.com/attachments/427078564827889674/639365284745969684/image0.png);
+    background-position: -400px -700px; */
+}
+
+#globalCon {
+    display:flex;
+    flex-direction: column;
+}
+#globalCon > div {
+    flex: 0 0;
+    text-align: left;
+}
+
+.urlBox, .infoBox, .controlsBox, .settingsBox {
+    margin-top: 1em;
+    margin-bottom: 1em;
+    padding: 5px;
+    border: #cecece dotted 2px;
+    border-radius: 5px;
+    background: #020202;
+    color: #cecece;
+}
+
+#displayCon, #displayCon > * {
+    width: 100%;
+}
+
+.displayBox {
+    padding: 10px;
+    height: calc(1em + 10px);
+}
+
+#urlCon, #infoCon, #controlsCon, #settingsCon {
+    background: #a0a0a0;
+    padding-top:5px;
+    padding-bottom: 5px;
+    color: black;
+    margin-top: .5em;
+    margin-bottom: .5em;
+}
+
+
+.urlText {
+    background: lightgrey;
+    color: black;
+    font-family: monospace;
+    text-shadow: none;
+    padding: 5px;
+    font-weight: normal;
+} 
+
+#logDisplayBox > ul {
+    list-style: none;
+    display: inline-block;
+    margin-top: 0;
+
+    text-align: left;
+}
+#logDisplayBox > ul > li:not(:first-child) {
+    border-top: black dashed;
+    padding-top: 0.5em;
+}
+#logDisplayBox > ul > li:not(:last-child) {
+    margin-bottom: 0.5em;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.controlsBox > div:not(:first-child), .infoBox > div:not(:first-child), .settingsBox > div:not(:first-child){
+    margin-top: 1em;
+}
+.controlsBox > div:not(:last-child), .infoBox > div:not(:last-child), .settingsBox > div:not(:last-child){
+    margin-bottom: 1em;
+}
