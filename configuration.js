@@ -11,6 +11,24 @@ import {widgetTypes, serviceTypes, generateMixinWidget} from './generateMixinWid
 import Module from './Module.js';
 
 import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.esm.browser.js';
+
+function relativeToAbsolute(path) {
+    let base = document.location.href;
+    var stack = base.split("/"),
+        parts = path.split("/");
+    stack.pop(); // remove current file name (or empty string)
+                 // (omit if "base" is the current folder without trailing slash)
+    for (var i=0; i<parts.length; i++) {
+        if (parts[i] == ".")
+            continue;
+        if (parts[i] == "..")
+            stack.pop();
+        else
+            stack.push(parts[i]);
+    }
+    return stack.join("/");
+}
+
 function Set_toJSON(key, value) {
   if (typeof value === 'object' && value instanceof Set) {
     return [...value];
@@ -182,7 +200,7 @@ let perWidgetComponent = {
             return mixedModules[this.currentComponentKey].service;
         },
         displayUrl() {
-            return `${window.location.origin}/embed.html?${encodeURIComponent(JSON.stringify({
+            return `${relativeToAbsolute('./embed.html')}?${encodeURIComponent(JSON.stringify({
                 moduleId: this.moduleId,
                 boxToShow: 'display',
                 theme: this.theme,
@@ -193,7 +211,7 @@ let perWidgetComponent = {
             }, Set_toJSON))}`;
         },
         controlsUrl() {
-            return `${window.location.origin}/embed.html?${encodeURIComponent(JSON.stringify({
+            return `${relativeToAbsolute('./embed.html')}?${encodeURIComponent(JSON.stringify({
                 moduleId: this.moduleId,
                 boxToShow: 'controls',
                 theme: this.theme,
@@ -204,7 +222,7 @@ let perWidgetComponent = {
             }, Set_toJSON))}`;
         },
         formUrl() {
-            return `${window.location.origin}/configuration.html?${encodeURIComponent(JSON.stringify({
+            return `${relativeToAbsolute('./configuration.html')}?${encodeURIComponent(JSON.stringify({
                 moduleId: this.moduleId,
                 theme: this.theme,
                 widgetType: this.widgetType,
