@@ -204,7 +204,7 @@ function initialize(config) {
 
     //initialise each module's boxes etc
     for(let each of config.modules) {
-        modules[each.prefix] = each;
+        modules[each.moduleId] = each;
         if(each.displayBox) {
             displayCon.appendChild(each.displayBox);
         }

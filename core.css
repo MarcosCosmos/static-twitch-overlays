@@ -1,22 +1,10 @@
+/* globals from the mouse tiltify goal */
 body {
-    /* background: black; */
-    /* color: black;
-    font-family: Verdana, Geneva, Tahoma, sans-serif; */
-    /* background: linear-gradient(90deg, rgba(230,215,36,1) 0%, rgba(230,215,36,1) 19.95%, rgba(0,0,0,1) 19.95%, rgba(0,0,0,1) 20.05%, rgba(244,140,213,1) 20.05%, rgba(244,140,213,1) 100%); */
+    /* background: black;
+    color: #cecece; */
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
     margin: 0;
     padding: 0;
-    /* overflow: hidden; */
-    /* background: url(https://cdn.discordapp.com/attachments/427078564827889674/639365284745969684/image0.png);
-    background-position: -400px -700px; */
-}
-
-#globalCon {
-    display:flex;
-    flex-direction: column;
-}
-#globalCon > div {
-    flex: 0 0;
-    text-align: left;
 }
 
 .urlBox, .infoBox, .controlsBox, .settingsBox {
@@ -25,32 +13,38 @@ body {
     padding: 5px;
     border: #cecece dotted 2px;
     border-radius: 5px;
-    background: #020202;
-    color: #cecece;
+    /* background: #020202;
+    color: #cecece; */
 }
 
-#displayCon, #displayCon > * {
+#previewSection, #previewSection > * {
     width: 100%;
 }
 
-#urlCon, #infoCon, #controlsCon, #settingsCon {
-    background: #a0a0a0;
+#urlsSection, #infoSection, #controlsSection, #formSection {
+    /* background: #a0a0a0; */
     padding-top:5px;
     padding-bottom: 5px;
-    color: black;
+    /* color: black; */
     margin-top: .5em;
     margin-bottom: .5em;
 }
 
-
 .urlText {
-    background: lightgrey;
-    color: black;
+    /* background: lightgrey;
+    color: black; */
     font-family: monospace;
-    text-shadow: none;
-    padding: 5px;
-    font-weight: normal;
-} 
+    /* text-shadow: none; */
+    /* padding: 5px;
+    font-weight: normal; */
+    display: block;
+    /* overflow-x: scroll; */
+}
+
+.urlText > pre {
+    overflow-x: visible !important;
+    margin: 0 !important;
+}
 
 #logDisplayBox > ul {
     list-style: none;
@@ -67,13 +61,36 @@ body {
     margin-bottom: 0.5em;
 }
 
-.hidden {
-    display: none !important;
-}
-
 .controlsBox > div:not(:first-child), .infoBox > div:not(:first-child), .settingsBox > div:not(:first-child){
     margin-top: 1em;
 }
 .controlsBox > div:not(:last-child), .infoBox > div:not(:last-child), .settingsBox > div:not(:last-child){
     margin-bottom: 1em;
+}
+
+/*config-form-specific (definitely extract to form specific css)*/
+#previewSection {
+    display: absolute;
+}
+
+
+#globalCon, #activationCon {
+    text-align: center;
+}
+#globalCon > div {
+    display: inline-block;
+    text-align: left;
+}
+
+#infoCon, #activationCon, #settingsCon{
+    background: white;
+    padding: 5px;
+} 
+
+.hidden {
+    display: none !important;
+}
+
+#previewSection, #previewSection > * {
+    width: 100%;
 }

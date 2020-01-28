@@ -3,20 +3,31 @@ import Module from './Module.js';
 
         //ALSO TODO: only *display* recent events
 
+const defaultConfig = {
+    moduleId: 'log',
+    displayTitle: 'Event Log',
+    expectRead: false, //whether or not to maintain a queue (pseudo-queue) of unread events for an alert; Actually, todo: use a reader count and a has-read count to solve for multiple alerts?(?)
+    defaultData: {events: [], lastEventId: 0},
+};
+
+/**
+ * Stores the most recent 100 events; Also keeps track of 'unread' events for an alert, 
+ */
 
 class Logger extends Module {
-    constructor() {
-        super({prefix: 'log', displayTitle: 'Event Log'});
+    constructor(config={}) {
+        super(Module.mixin(defaultConfig, config));
+        this.loadData();
     }
 
     loadData() {
-        this.data = {
+        this.info = {
             events: []
         };
 
         let eventsText = localStorage.getItem('eventLog');
         if(eventsText !== null) {
-            this.data.events = JSON.parse(eventsText)
+            this.info.events = JSON.parse(eventsText)
                 .map(e => {e.time = new Date(Date.parse(e.time)); return {data: e};});
         }
     }
@@ -27,7 +38,7 @@ class Logger extends Module {
         this.displayBox.id = 'logDisplayBox';
         
         this.displayBox.innerHTML = `
-            <h1>${this.moduleConfig.displayTitle}</h1>
+            <h1>${this.config.displayTitle}</h1>
             <ul id="eventLog">
             </ul>
         `;
@@ -39,10 +50,10 @@ class Logger extends Module {
     generateControlsBox() {
         this.controlsBox = document.createElement('div');
         this.controlsBox.classList.add('controlsBox');
-        this.controlsBox.id = `${this.prefix}ControlsBox`;
+        this.controlsBox.id = `${this.moduleId}ControlsBox`;
 
         this.controlsBox.innerHTML = `
-            <h3>${this.moduleConfig.displayTitle}</h3>
+            <h3>${this.config.displayTitle}</h3>
             <div>
                 <span style="color: red;">Warning: this action is cannot be undone</span>
                 <button type="button" class="eraseButton">Erase Data</button>
@@ -52,7 +63,7 @@ class Logger extends Module {
         let eraseButton = this.controlsBox.querySelector(':scope .eraseButton');
         eraseButton.onclick = event => {
             eraseButton.disabled = true;
-            this.data = {events: []};
+            this.info = {events: []};
             this.updateElements();
             this.save();
             eraseButton.disabled = false;
@@ -67,7 +78,7 @@ class Logger extends Module {
         while (this.eventListElm.firstChild) {
             this.eventListElm.removeChild(this.eventListElm.firstChild);
         }
-        for(let each of this.data.events.slice(0,100)) {
+        for(let each of this.info.events.slice(0,100)) {
             let item = this.generateListItem(each.data);
             each.item = item;
             this.eventListElm.appendChild(item);
@@ -88,18 +99,19 @@ class Logger extends Module {
      * stores the current events in localStorage
      */
     save() {
-        localStorage.setItem('eventLog', JSON.stringify(this.data.events.map(each => each.data)));
+        localStorage.setItem('eventLog', JSON.stringify(this.info.events.map(each => each.data)));
     }
 
     log(event) {
         let item = this.generateListItem(event);
-        this.data.events.unshift({data: event, item: item});
-        if(this.data.events.length > 100) {
-            let toHide = this.data.events[100];
+        this.info.events.unshift({data: event, item: item, id: this.info.lastEventId});
+        this.info.lastEventId += 1;
+        if(this.info.events.length > 1000) {
+            let toHide = this.info.events[1000];
             toHide.item.remove();
             delete toHide.item;
         }
-        if(this.data.events.length > 1) {
+        if(this.info.events.length > 1) {
             this.eventListElm.insertBefore(item, this.eventListElm.childNodes[0]);
         } else {
             this.eventListElm.appendChild(item);

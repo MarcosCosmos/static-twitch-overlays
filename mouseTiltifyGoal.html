@@ -31,7 +31,7 @@
                 background-repeat: repeat-x;
                 background-size: auto 40px, 0 !important;
                 background-position: left -2px, 0 0 !important;
-                font-size: 20px;
+                font-size: 25px;
                 font-weight: bold;
             }
             #tiltifyMiniGoalDisplayBox > * {
@@ -61,7 +61,7 @@
                 scanDelay: 30000
             });
             let theGoal = new TiltifyGoal({
-                prefix: 'tiltifyMiniGoal',
+                moduleId: 'tiltifyMiniGoal',
                 displayTitle: '<img class="wheel" src="./sppin_wheel.png"> Wheel Spin',
                 settingsTitle: 'Tiltify Mini-Goal',
                 step: 'any',
@@ -97,7 +97,7 @@
                 ]
             };
             initialize(config);
-            theScanner.startScanning();
+            theScanner.start();
         </script>
     </head>
     <body>
