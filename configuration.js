@@ -225,7 +225,7 @@ let perWidgetComponent = {
     methods: {
         async loadTheme() {
             //only change theme if the new theme is real
-            let themeJsUrl = `/themes/${this.theme}/displays.js`;
+            let themeJsUrl = `./themes/${this.theme}/displays.js`;
             if((await fetch(themeJsUrl)).status == 200){
                 this.themeBoxes = (await import(themeJsUrl)).default;
                 
@@ -237,7 +237,7 @@ let perWidgetComponent = {
                 }
                 let newStyleSheet = document.createElement('link');
                 newStyleSheet.rel = 'stylesheet';
-                newStyleSheet.href = `/themes/${this.theme}/style.css`;
+                newStyleSheet.href = `./themes/${this.theme}/style.css`;
                 newStyleSheet.id = 'themeStyle';
                 
                 document.head.appendChild(newStyleSheet);
