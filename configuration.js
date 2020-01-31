@@ -323,7 +323,7 @@ let perWidgetComponent = {
             </template>
         </component>
     `,
-    el: '#all'
+    el: '#config'
 }
 
 let thing = new Vue(perWidgetComponent);

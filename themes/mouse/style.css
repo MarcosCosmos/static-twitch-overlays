@@ -1,0 +1,108 @@
+
+.displayBox > * {
+    left: 0px;  /* stick it wherever it was positioned by default */
+    top: 0px;
+}
+
+.displayBox {
+    text-align: center;
+    font-family: 'Lobster Two', cursive, sans-serif;
+    font-size: 26px;
+    font-weight: bold;
+    position: relative;
+}
+
+/* .progressBars .counterCon {
+    background-color: rgba(244,140,213,1);
+    background-image: linear-gradient(rgb(237, 223, 41), rgb(209, 197, 33)), linear-gradient(rgb(0,0,0), rgb(0,0,0));
+    background-repeat: no-repeat;
+    border: black solid 1px;
+} */
+
+/* .progressBars .backstroke {
+    display: none;
+} */
+/* .stroked  */
+.backstroke {
+    z-index: 10;
+}
+
+/* .stroked */
+.forestroke {
+    z-index: 20;
+}
+
+.backstroke {
+    -webkit-text-stroke: 4px black;
+}
+
+.forestroke {
+    color: rgba(244,140,213,1);
+}
+
+/* .backstroke {
+    -webkit-text-stroke: 4px white;
+}
+
+
+.forestroke {
+    color: black; 
+}*/
+
+
+.backstroke, .forestroke {
+    position: absolute;
+    width: 100%;
+}
+
+.urlBox {
+    padding: 5px;
+    border: black dotted 2px;
+    border-radius: 5px;
+    background: white;
+}
+
+.dangerBox {
+    border-color: red;
+    color: red;
+}
+
+.urlText {
+    background: lightgrey;
+    color: black;
+    font-family: monospace;
+    text-shadow: none;
+    padding: 5px;
+    font-weight: normal;
+}
+
+/* #recentGoalsCon {
+}
+#goalLog {
+    list-style: none;
+    display: inline-block;
+    margin-top: 0;
+
+    text-align: left;
+}
+#goalLog > li:not(:first-child) {
+    border-top: black dashed;
+    padding-top: 0.5em;
+}
+#goalLog > li:not(:last-child) {
+    margin-bottom: 0.5em;
+} */
+
+.displayBox {
+    color: white;
+    display: inline-block;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 4px;
+    font-size: 25px;
+    font-weight: bold;
+    min-height: calc(1em + 8px);
+}
+
+#previewSection {
+    background-color: #65a9d1;
+}
