@@ -10,24 +10,10 @@ let defaultConfig;
     };
 }
 
-class AccumulationDisplay extends BasicDisplay {
+class Counter extends BasicDisplay {
     constructor(config=defaultConfig) {
         super(Module.mixin(defaultConfig, config));
     }
-
-    // generateDisplayBox() {
-    //     //we didn't call super, therefore only the ones defined here will appear; maybe remove this from being it's own method later
-    //     this.componentLists.display.push({
-    //         data: this.coreDataGetter,
-    //         template: `
-    //             <div class="outlineBox">
-    //                 <div v-for="e in ['forestroke', 'backstroke']" :class="e">
-    //                     {{config.displayTitle}}</span>: {{info.currentValue}}
-    //                 </div>
-    //             </div>
-    //         `
-    //     });
-    // }
 
     generateControlsBox() {
         super.generateControlsBox();
@@ -54,7 +40,7 @@ class AccumulationDisplay extends BasicDisplay {
     }
 
     /**
-     * Adds 1 the goal progress and updates data and elements accordingly
+     * Adds 1 the counter and updates data and elements accordingly
      */
     async increment() {
         let release = await this.requestInfoLock();
@@ -66,7 +52,7 @@ class AccumulationDisplay extends BasicDisplay {
     }
 
     /**
-     * Adds the given amount to the goal progress and updates data and elements accordingly
+     * Adds the given amount to the counter and updates data and elements accordingly
      * @param float amount 
      */
     async add(amount) {
@@ -77,6 +63,19 @@ class AccumulationDisplay extends BasicDisplay {
         
         this.save(); //ironically, this probably achieves that tracability mentioned in veux?
     }
+
+    /**
+     * Sets the counter amount to the given amount and updates data and elements accordingly
+     * @param float amount 
+     */
+    async set(amount) {
+        let release = await this.requestInfoLock();
+        this.info.totalValue += this.info.currentValue-amount;
+        this.info.currentValue = amount;
+        release();
+        
+        this.save(); //ironically, this probably achieves that tracability mentioned in veux?
+    }
 };
 
-export default AccumulationDisplay;
+export default Counter;

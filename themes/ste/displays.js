@@ -21,7 +21,17 @@ let displayMixins = {
             }
         },
     }},
-    eventDisplay(){return {
+    counter(){return {
+        data: this.coreDataGetter,
+        template: `
+            <div class="displayBox counterBox outlineBox" ref="displayBox" style="height: calc(1.5em)">
+                <div v-for="e in ['forestroke', 'backstroke']" :class="e">
+                    {{config.displayTitle}}</span>: {{info.currentValue}}
+                </div>
+            </div>
+        `,
+    }},
+    streamEvent(){return {
         data: this.coreDataGetter,
         template: `
             <div class="displayBox eventBox outlineBox" ref="displayBox" style="height: 3em">

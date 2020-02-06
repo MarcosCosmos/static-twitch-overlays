@@ -1,5 +1,5 @@
 import Module from './Module.js';
-import AccumulationDisplay from './AccumulationDisplay.js';
+import Counter from './Counter.js';
 
 
  
@@ -23,7 +23,7 @@ let defaultConfig;
 /**
  * Note this basic/base goal doesn't include an updating mechanism in and of itself other than manually through settings, and should be extended with subclasses that interact with other modules (such a streamlabs socket.io module) to listen for updates
  */
-export default class BasicGoal extends AccumulationDisplay {
+export default class BasicGoal extends Counter {
     constructor(config=defaultConfig) {
         if(config.logger) {
             config.logger.moduleId = `${config.moduleId}_log`;
@@ -32,31 +32,6 @@ export default class BasicGoal extends AccumulationDisplay {
         super(Module.mixin(defaultConfig, config));
         
     }
-
-    // generateDisplayBox() {
-    //     this.componentLists.display.push({
-    //         data: this.coreDataGetter,
-    //         template: `
-    //             <div class="goalBox outlineBox" :style="{backgroundSize: markerPoint + 'px, 1px', backgroundPosition: '0,' + markerPoint + 'px'}" ref="displayBox">
-    //                 <div v-for="e in ['forestroke', 'backstroke']" :class="e">
-    //                     {{config.displayTitle}}</span>: {{info.currentValue}}/{{config.goal}}
-    //                 </div>
-    //             </div>
-    //         `,
-    //         computed: {
-    //             markerPoint() {
-    //                 if(this.$refs.displayBox){
-    //                     let width = this.$refs.displayBox.offsetWidth;
-    //                     let currentProportion = this.info.currentValue / this.config.goal;
-    //                     let result = Math.floor(currentProportion*width);
-    //                     return result;
-    //                 } else {
-    //                     return 0;
-    //                 }
-    //             }
-    //         },
-    //     });
-    // }
 
     generateSettingsBox() {
         super.generateSettingsBox();
@@ -129,6 +104,20 @@ export default class BasicGoal extends AccumulationDisplay {
         let release = await this.requestInfoLock();
         this.info.currentValue += amount;
         this.info.totalValue += amount;
+        this.checkGoalReached();
+        release();
+        
+        this.save(); //ironically, this probably achieves that tracability mentioned in veux?
+    }
+
+    /**
+     * Sets the goal progress to the given amount and updates data and elements accordingly
+     * @param float amount 
+     */
+    async set(amount) {
+        let release = await this.requestInfoLock();
+        this.info.totalValue += this.info.currentValue-amount;
+        this.info.currentValue = amount;
         this.checkGoalReached();
         release();
         

@@ -23,12 +23,13 @@ function accumulationListener() {
     );
 }
 
-function displayListener() {
+function streamEventListener() {
     this.service.addListener(
         event => {
             this.info.currentEvent = {
                 by: event.details.name,
-                detail: event.details.message.formattedAmount
+                detail: event.details.message.formattedAmount,
+                raw: event.details
             };
             this.save();
         }
@@ -39,4 +40,20 @@ function alertListener() {
     console.log('WARNING: NOT YET IMPLEMENTED');
 }
 
-export default { defaultConfig, generateSettingsBox, accumulationListener, displayListener, alertListener};
+export default { 
+    goal: {
+        defaultConfig,
+        generateSettingsBox,
+        listener: accumulationListener
+    },
+    counter: {
+        defaultConfig,
+        generateSettingsBox,
+        listener: accumulationListener
+    },
+    streamEvent: {
+        defaultConfig,
+        generateSettingsBox,
+        listener: streamEventListener
+    }
+};

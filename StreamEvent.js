@@ -4,7 +4,7 @@ import BasicDisplay from './BasicDisplay.js';
 let defaultConfig = {
     nameOnly: false,
     defaultData: {
-        currentEvent: {by: 'Example', detail: '42'}
+        currentEvent: {by: '-', detail: '-'}
     },
     servce: null
 };

@@ -7,7 +7,15 @@ let displayMixins = {
             </div>
         `
     }},
-    eventDisplay(){return {
+    counter(){return {
+        data: this.coreDataGetter,
+        template: `
+            <div class="displayBox counterBox" ref="displayBox">
+                {{config.displayTitle}}</span>: {{info.currentValue}}
+            </div>
+        `
+    }},
+    streamEvent(){return {
         data: this.coreDataGetter,
         template: `
             <div class="displayBox eventBox" ref="displayBox">

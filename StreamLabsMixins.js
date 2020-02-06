@@ -74,34 +74,42 @@ function generateSettingsBox() {
                     this.config.eventType = newOptions[0];
                 }
             },
-            'config.eventType': function(newValue) {
-                //todo: differentiate between watches for different box types
-                switch(newValue) {
-                    case 'donation':
-                    case 'superchat':
-                        this.config.step =
-                            this.config.min = .01;
-                        break;
-                    default:
-                        this.config.step =
-                            this.config.min = 1;
-                }
-                switch(newValue) {
-                    case 'donation':
-                    case 'superchat':
-                    case 'bits':
-                        this.config.nameOnly = false;
-                        break;
-                    default:
-                        this.config.nameOnly = true;
-                }
-                this.config.goal = Math.max(this.config.goal, this.config.min);;
-            }
         }
     });
 }
 
+function generateGoalSettingsBox() {
+    (generateSettingsBox.bind(this))();
+    this.componentLists.settings[this.componentLists.settings.length-1].watch['config.eventType'] = function(newValue) {
+        switch(newValue) {
+            case 'donation':
+            case 'superchat':
+                this.config.step =
+                    this.config.min = .01;
+                break;
+            default:
+                this.config.step =
+                    this.config.min = 1;
+        }
+        this.config.goal = Math.max(this.config.goal, this.config.min);;
+    }
+}
 
+function generateStreamEventSettingsBox() {
+    (generateSettingsBox.bind(this))();
+    this.componentLists.settings[this.componentLists.settings.length-1].watch['config.eventType'] = function(newValue) {
+        switch(newValue) {
+            case 'donation':
+            case 'superchat':
+            case 'bits':
+                this.config.nameOnly = false;
+                break;
+            default:
+                this.config.nameOnly = true;
+        }
+        this.config.goal = Math.max(this.config.goal, this.config.min);;
+    }
+}
 
 function accumulationListener() {
     this.service.addListener(
@@ -132,7 +140,7 @@ function accumulationListener() {
     );
 }
 
-function displayListener() {
+function streamEventListener() {
     this.service.addListener(
         event => {
             if(event.details.for == this.config.eventPlatform && event.details.type == this.config.eventType) {
@@ -141,19 +149,22 @@ function displayListener() {
                         //superchats are measured in micros of a unit, so divide by 1000000 before continueing
                         this.info.currentEvent = {
                             by: event.details.message.name,
-                            detail: event.details.message.displayString
+                            detail: event.details.message.displayString,
+                            raw: event.details
                         };
                         break;
                     case 'donation':
                         this.info.currentEvent = {
                             by: event.details.name,
-                            detail: event.details.message.formattedAmount
+                            detail: event.details.message.formattedAmount,
+                            raw: event.details
                         };
                         break;
                     case 'bits':
                         this.info.currentEvent = {
                             by: event.details.name,
-                            detail: event.details.message.amount
+                            detail: event.details.message.amount,
+                            raw: event.details
                         }
                         break;
                     case 'follow':
@@ -161,7 +172,8 @@ function displayListener() {
                     case 'host':
                     case 'raid':
                         this.info.currentEvent = {
-                            by: event.details.message.name
+                            by: event.details.message.name,
+                            raw: event.details
                         };
                         break;
                     default:
@@ -172,11 +184,28 @@ function displayListener() {
             }
         }
     );
-    console.log('WARNING: NOT YET IMPLEMENTED');
 }
 
 function alertListener() {
     console.log('WARNING: NOT YET IMPLEMENTED');
 }
 
-export default { defaultConfig, generateSettingsBox, accumulationListener, displayListener, alertListener};
+let mixins = {
+    goal: {
+        defaultConfig,
+        generateSettingsBox: generateGoalSettingsBox,
+        listener: accumulationListener
+    },
+    counter: {
+        defaultConfig,
+        generateSettingsBox,
+        listener: accumulationListener
+    },
+    streamEvent: {
+        defaultConfig,
+        generateSettingsBox: generateStreamEventSettingsBox,
+        listener: streamEventListener
+    }
+}
+
+export default mixins;
