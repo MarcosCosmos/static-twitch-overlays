@@ -42,12 +42,13 @@ class Counter extends BasicDisplay {
     /**
      * Adds 1 the counter and updates data and elements accordingly
      */
-    async increment() {
-        let release = await this.requestInfoLock();
+    // async increment() {
+    //     this.withLock(()=>this._increment());
+    // }
+
+    increment() {
         ++this.info.currentValue;
         ++this.info.totalValue;
-        release();
-        
         this.save(); //ironically, this probably achieves that tracability mentioned in veux?
     }
 
@@ -55,12 +56,13 @@ class Counter extends BasicDisplay {
      * Adds the given amount to the counter and updates data and elements accordingly
      * @param float amount 
      */
-    async add(amount) {
-        let release = await this.requestInfoLock();
+    // async add(amount) {
+    //     this.withLock(()=>this._add(amount));
+    // }
+
+    add(amount) {
         this.info.currentValue += amount;
         this.info.totalValue += amount;
-        release();
-        
         this.save(); //ironically, this probably achieves that tracability mentioned in veux?
     }
 
@@ -68,12 +70,13 @@ class Counter extends BasicDisplay {
      * Sets the counter amount to the given amount and updates data and elements accordingly
      * @param float amount 
      */
-    async set(amount) {
-        let release = await this.requestInfoLock();
+    // async set(amount) {
+    //     this.withLock(()=>this._set(amount));
+    // }
+
+    set(amount) {
         this.info.totalValue += this.info.currentValue-amount;
         this.info.currentValue = amount;
-        release();
-        
         this.save(); //ironically, this probably achieves that tracability mentioned in veux?
     }
 };

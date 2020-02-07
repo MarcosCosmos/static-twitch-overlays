@@ -20,30 +20,6 @@ class EventEmitter extends Module {
         this.listeners = [];
     }
 
-    // generateControlsBox() {
-    //     this.controlsBox = document.createElement('div');
-    //     this.controlsBox.classList.add('controlsBox');
-    //     this.controlsBox.id = `${this.moduleId}ControlsBox`;
-
-    //     this.controlsBox.innerHTML = `
-    //         <h3>${this.config.displayTitle}</h3>
-    //         <div>
-    //             <span style="color: red;">Warning: this action is cannot be undone</span>
-    //             <button type="button" class="eraseButton">Erase Data</button>
-    //         </div>
-    //     `;
-
-    //     let eraseButton = this.controlsBox.querySelector(':scope .eraseButton');
-    //     eraseButton.onclick = event => {
-    //         eraseButton.disabled = true;
-    //         this.info = defaultData;
-    //         this.updateElements();
-    //         this.save();
-    //         eraseButton.disabled = false;
-    //     }
-
-    // }
-
     start() {
         
     }
@@ -67,20 +43,17 @@ class EventEmitter extends Module {
     }
 
     //use these overloads to deal with the set business
-    async loadInfo() {
-        
-        let release = await this.requestInfoLock();
+    loadInfo() {
         let tmp = {};
         this.getItems(tmp);
         if(tmp.eventsSeen) {
-            tmp.eventsSeen = new Set(tmp.eventsSeen);
+            tmp.eventsSeen = new Set([...tmp.eventsSeen, ...this.info.eventsSeen]);
         } else if(this.info.eventsSeen instanceof Array) {
             this.info.eventsSeen = new Set(this.info.eventsSeen);
         }
         for(let each of Object.keys(tmp)) {
             this.info[each] = tmp[each];
         }
-        release();
     }
 
     /**
@@ -93,6 +66,21 @@ class EventEmitter extends Module {
             localStorage.setItem(`${this.config.moduleId}${eachName}`, JSON.stringify(destination[eachName], Set_toJSON)); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
         }
     }
+    
+    // async requestInfoLock() {
+    //     let ownResolver;
+    //     let existingPromise = this.infoLock;
+    //     this.infoLock = new Promise((resolve) => ownResolver=resolve);
+    //     await existingPromise;
+    //     let listenerResolvers = [];
+    //     for(let each of this.listeners){
+    //         listenerResolvers.push(await each.requestInfoLock());
+    //     }
+    //     return () => {
+    //         listenerResolvers.forEach(each => each());
+    //         ownResolver();
+    //     };
+    // }
 }
 
 export default EventEmitter;

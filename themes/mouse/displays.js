@@ -25,6 +25,21 @@ let displayMixins = {
                 </template>
             </div>
         `
+    }},
+    logger(){return {
+        data: this.coreDataGetter,
+        template: `
+            <div class="displayBox logBox" ref="displayBox">
+                <h1>${this.config.displayTitle}</h1>
+                <ul id="eventLog">
+                    <li v-for="each of info.events.slice(0, 100)">
+                        <strong>Type: </strong><span class="eventName">${event.name}</span>
+                        <br/>
+                        <strong>Time: </strong><span class="eventTime">${event.time}</span>
+                    </li>
+                </ul>
+            </div>
+        `
     }}
 };
 

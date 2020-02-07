@@ -50,6 +50,7 @@ class StreamLabsSocket extends EventEmitter {
                         console.error(err);
                     }
                 }
+                this.save();
             }
         };
 

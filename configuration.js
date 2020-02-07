@@ -12,6 +12,8 @@ import Module from './Module.js';
 
 import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.esm.browser.js';
 
+import defaultThemeBoxes from './themes/default/displays.js';
+
 function relativeToAbsolute(path) {
     let base = document.location.href;
     var stack = base.split("/"),
@@ -173,11 +175,6 @@ for(const eachWidgetType of Object.keys(widgetTypes)) {
     }
 };
 
-let dummyThemeBoxes = {};
-dummyThemeBoxes[defaultConfig.widgetType] = function(){return {
-    template: '<div></div>'
-}};
-
 let perWidgetComponent = {
     data: function(){return {
         moduleId: defaultConfig.moduleId,
@@ -186,7 +183,7 @@ let perWidgetComponent = {
         widgetTypes: widgetTypes,
         serviceTypes: serviceTypes,
         theme: defaultConfig.theme || 'default',
-        themeBoxes: dummyThemeBoxes,
+        themeBoxes: Object.assign({}, defaultThemeBoxes),
     }},
     components: mixedComponents,
     computed: {
@@ -233,7 +230,16 @@ let perWidgetComponent = {
         },
         displayBox() {
             return (this.themeBoxes[this.widgetType].bind(this.widget))();
-        }
+        },
+        // loggerBox() {
+        //     if(this.widget.logger) {
+        //         return (this.themeBoxes.logger.bind(this.widget.logger))();
+        //     } else {
+        //         return {
+        //             template: '<div></div>'
+        //         };
+        //     }
+        // }
     },
     watch: {
         theme() {
@@ -245,7 +251,11 @@ let perWidgetComponent = {
             //only change theme if the new theme is real
             let themeJsUrl = `./themes/${this.theme}/displays.js`;
             if((await fetch(themeJsUrl)).status == 200){
-                this.themeBoxes = (await import(themeJsUrl)).default;
+                let newBoxes = (await import(themeJsUrl)).default;
+                //assign only those that exist;
+                for(const eachKey of Object.keys(newBoxes)) {
+                    this.themeBoxes[eachKey] = newBoxes[eachKey];
+                }
                 
                 //only changes the css on a successful theme being grabbed
                 
@@ -268,6 +278,12 @@ let perWidgetComponent = {
     template: `
         <component :is="currentComponentKey" :widget-id="moduleId" :display-box="displayBox">
             <template v-slot:urlBoxes>
+                <div class="alert alert-primary">
+                    Notice: When adding these as Browser Sources in OBS and SLOBS, be sure to only create one "new" source for each URL; That is, you can create one source for the <em>Main Display URL</em> and one for the <em>Additional Controls URL</em>, but do not need to create new sources to add a widget to multiple scenes. To add a source to multiple scenes, choose "Add Existing" when adding the source, and select the existing source from the list that appears.
+                    <br/>
+                    <br/>
+                    It is recommended that both the "Shutdown source when not visible" and "Refresh browser when scene becomes active" settings are unticked, however "Shutdown source when not visible" may be selected for widgets which play audio to prevent the audio playing in scenes that do not have the widget.
+                </div>
                 <div class="urlBox">
                     <h4>Embedding Links (Use these as a browser source in OBS)</h4>
                     <h5>Main Display URL</h5>

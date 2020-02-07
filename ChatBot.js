@@ -18,7 +18,7 @@ const userLevels = {
     "broadcaster":4
 };
 
-class ChatBox extends EventEmitter {
+class ChatBot extends EventEmitter {
     constructor(config={}) {
         super(Module.mixin(defaultConfig, config));
         this.client = null;
@@ -80,19 +80,20 @@ class ChatBox extends EventEmitter {
             },
             channels: this.config.channels.split(',').map(s => '#' + s)
         });
-        this.client.on('message', (channel, tags, message, self) => {
-            if(self) return;
-            if(!self && this.levelOf(tags) >= this.config.userLevel && !this.info.eventsSeen.has(tags.id)) {
-                this.info.eventsSeen.add(tags.id);
-                for(const each of this.listeners) {
-                    each({
+        let self=this;
+        this.client.on('message', async (channel, tags, message, isMyMsg) => {
+            if(isMyMsg) return;
+            if(self.levelOf(tags) >= self.config.userLevel && !self.info.eventsSeen.has(tags.id)) {
+                self.info.eventsSeen.add(tags.id);
+                for(const each of self.listeners) {
+                    await each.onEvent({
                         channel,
                         tags,
                         message,
                         self
-                    })
+                    });
                 }
-                this.save();
+                self.save();
             }
         });
         this.client.connect();
@@ -107,6 +108,6 @@ class ChatBox extends EventEmitter {
     }
 }
 
-ChatBox.userLevels = userLevels;
+ChatBot.userLevels = userLevels;
 
-export default ChatBox;
+export default ChatBot;

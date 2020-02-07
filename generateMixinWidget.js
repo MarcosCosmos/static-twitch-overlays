@@ -60,7 +60,7 @@ function generateMixinWidget(widgetType, serviceType) {
         constructor(config={}, service) {
             super(Module.mixin(mixins.defaultConfig, config));
             this.service = service;
-            (mixins.listener.bind(this))();
+            this.service.addListener(mixins.listener.bind(this));
         }
         generateSettingsBox() {
             super.generateSettingsBox();

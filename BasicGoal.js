@@ -1,5 +1,6 @@
 import Module from './Module.js';
 import Counter from './Counter.js';
+import Logger from './Logger.js';
 
 
  
@@ -11,8 +12,6 @@ let defaultConfig;
         step: 'any',
         min: 0,
         useModulo: false, //indicates whether or not to roll over to 0 when a goal is reached,
-        logger: null, //optional Logger instance (only used if present)
-        service: null,
         defaultData: {
             totalValue: 0,
             goalsReached: 0
@@ -25,12 +24,8 @@ let defaultConfig;
  */
 export default class BasicGoal extends Counter {
     constructor(config=defaultConfig) {
-        if(config.logger) {
-            config.logger.moduleId = `${config.moduleId}_log`;
-            config.logger.displayTitle = `${config.displayTitle} Log`;
-        }
         super(Module.mixin(defaultConfig, config));
-        
+        this.logger = new Logger({moduleId: `${config.moduleId}_log`, displayTitle: `${config.displayTitle} Log`});
     }
 
     generateSettingsBox() {
@@ -72,7 +67,7 @@ export default class BasicGoal extends Counter {
                 'info.totalValue': function() {
                     self.save();
                 },
-                'info.currentValue': function(value) {
+                'info.currentValue': async function(value) {
                     let oldTimesReached = this.info.goalsReached;
                     self.checkGoalReached();
                     if(value != this.info.currentValue || oldTimesReached != this.info.goalsReached) {
@@ -86,13 +81,10 @@ export default class BasicGoal extends Counter {
     /**
      * Adds 1 the goal progress and updates data and elements accordingly
      */
-    async increment() {
-        let release = await this.requestInfoLock();
+    increment() {
         ++this.info.currentValue;
         ++this.info.totalValue;
         this.checkGoalReached();
-        release();
-        
         this.save(); //ironically, this probably achieves that tracability mentioned in veux?
     }
 
@@ -100,13 +92,10 @@ export default class BasicGoal extends Counter {
      * Adds the given amount to the goal progress and updates data and elements accordingly
      * @param float amount 
      */
-    async add(amount) {
-        let release = await this.requestInfoLock();
+    add(amount) {
         this.info.currentValue += amount;
         this.info.totalValue += amount;
         this.checkGoalReached();
-        release();
-        
         this.save(); //ironically, this probably achieves that tracability mentioned in veux?
     }
 
@@ -114,14 +103,11 @@ export default class BasicGoal extends Counter {
      * Sets the goal progress to the given amount and updates data and elements accordingly
      * @param float amount 
      */
-    async set(amount) {
-        let release = await this.requestInfoLock();
+    set(amount) {
         this.info.totalValue += this.info.currentValue-amount;
         this.info.currentValue = amount;
         this.checkGoalReached();
-        release();
-        
-        this.save(); //ironically, this probably achieves that tracability mentioned in veux?
+        this.save();
     }
 
     checkGoalReached() {

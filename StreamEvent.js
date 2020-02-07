@@ -6,29 +6,13 @@ let defaultConfig = {
     defaultData: {
         currentEvent: {by: '-', detail: '-'}
     },
-    servce: null
+    service: null
 };
 
-class EventDisplay extends BasicDisplay {
+class StreamEvent extends BasicDisplay {
     constructor(config=defaultConfig) {
         super(Module.mixin(defaultConfig, config));
     }
-    // generateDisplayBox() {
-    //     this.componentLists.display.push({
-    //         data: this.coreDataGetter,
-    //         template: `
-    //             <div class="eventBox outlineBox" ref="displayBox">
-    //                 <div v-for="e in ['forestroke', 'backstroke']" :class="e">
-    //                     <div style="text-decoration: underline;">{{config.displayTitle}}</div>
-    //                     {{currentEvent.by}}
-    //                     <template v-if="!config.nameOnly">
-    //                         - {{currentEvent.detail}}
-    //                     </template>
-    //                 </div>
-    //             </div>
-    //         `
-    //     });
-    // }
 }
 
-export default EventDisplay;
+export default StreamEvent;

@@ -99,9 +99,9 @@ class TiltifyScanner extends EventEmitter {
                                     console.error(err);
                                 }
                             }
+                            await this.save();
                         }
                     }
-                    this.save();
                 }
                 if(response.links.prev.length > 0) {
                     let tmp = new URLSearchParams(response.links.prev).get('before');

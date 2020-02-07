@@ -29,7 +29,6 @@ export default class Module {
     constructor(config={}) {
         this.config = Module.mixin(defaultConfig, config);
         this.info = Module.mixin({}, this.config.defaultData);
-        this.infoLock = Promise.resolve();
         this.loadInfo();
         
         
@@ -92,13 +91,13 @@ export default class Module {
 
     }
 
-    async requestInfoLock() {
-        let resolver;
-        let existingPromise = this.infoLock;
-        this.infoLock = new Promise((resolve) => resolver=resolve);
-        await existingPromise;
-        return resolver;
-    }
+    // async requestInfoLock() {
+    //     let resolver;
+    //     let existingPromise = this.infoLock;
+    //     this.infoLock = new Promise((resolve) => resolver=resolve);
+    //     await existingPromise;
+    //     return resolver;
+    // }
 
     /**
      * Should generate the box fully up to date with current data
@@ -168,7 +167,8 @@ export default class Module {
                 </form>
             `,
             methods: {
-                eraseData() {
+                async eraseData() {
+                    let release = await self.requestInfoLock();
                     let recursingAssign = (destination, source) => {
                         for(const eachKey of Object.keys(source)) {
                             if(destination[eachKey] == null || (!(source[eachKey] instanceof Object) || source[eachKey] instanceof Array)) {
@@ -179,22 +179,32 @@ export default class Module {
                         }
                     };
                     recursingAssign(this.info, this.config.defaultData);
-                    self.save();
+                    self._save();
+                    release();
                 }
             }
         });
     }
 
-    async loadInfo() {
-        let release = await this.requestInfoLock();
-        this.getItems(this.info);
-        release();
-    }
+    // async loadInfo() {
+    //     this.withLock(async ()=>this.getItems(this.info));
+    // }
+    
 
-    async save() {
-        let release = await this.requestInfoLock();
+    // async save() {
+    //     this.withLock(()=>this._save());
+    // }
+
+    // async withLock(work) {
+    //     let release = await this.requestInfoLock();
+    //     await work();
+    //     release();
+    // }
+    loadInfo() {
+        this.getItems(this.info);
+    }
+    save() {
         this.storeItems(this.info);
-        release();
     }
 
     /**

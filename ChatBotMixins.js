@@ -24,7 +24,7 @@ function accumulationListener() {
     let prefixes = this.config.commandPrefixes.split(',');
     let regex = new RegExp(`^(${prefixes.join('|')})`)
     this.service.addListener(
-        async event => {
+        event => {
             if(regex.test(event.message)) {
                 let match = event.message.match(regex);
                 let amount = NaN;
@@ -39,12 +39,12 @@ function accumulationListener() {
                 }
                 if(!isNaN(amount) && isFinite(amount)) {
                     if (relative) {
-                        await this.add(amount);
+                        this.add(amount);
                     } else {
-                        await this.set(amount);
+                        this.set(amount);
                     }
                 } else {
-                    await this.increment();
+                    this.increment();
                 }
                 this.service.client.say(event.channel, `${this.config.displayTitle} is now: ${this.info.currentValue}`);
             }
@@ -56,7 +56,7 @@ function streamEventListener() {
     let prefixes = this.config.commandPrefixes.split(',');
     let regex = new RegExp(`^(${prefixes.join('|')})`)
     this.service.addListener(
-        async event => {
+        event => {
             if(regex.test(event.message)) {
                 let match = event.message.match(regex);
                 let msg = '';
@@ -68,7 +68,7 @@ function streamEventListener() {
                     detail: msg,
                     raw: event
                 };
-                await this.save();
+                this.save();
                 this.service.client.say(event.channel, `Message recieved! @${event.tags.displayName}`);
             }
         }
