@@ -79,6 +79,9 @@ for(const eachWidgetType of Object.keys(widgetTypes)) {
         const MixedWidget = generateMixinWidget(eachWidgetType, eachServiceType);
         let eachService = new serviceTypes[eachServiceType].constructor(serviceConfigToUse);
         let eachWidget = new MixedWidget(widgetConfigToUse, eachService);
+
+        eachService.finalizeBoxes();
+        eachWidget.finalizeBoxes();
             
         let eachComponent = {
             props: ['widgetId'],

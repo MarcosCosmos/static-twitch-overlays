@@ -15,8 +15,8 @@ class Counter extends BasicDisplay {
         super(Module.mixin(defaultConfig, config));
     }
 
-    generateControlsBox() {
-        super.generateControlsBox();
+    generateBoxes() {
+        super.generateBoxes();
         let self=this;
         this.componentLists.controls.push({
             data: this.coreDataGetter,

@@ -21,8 +21,25 @@ body {
     width: 100%;
 }
 
-.logBox {
+.logBox .eventListCon {
+    max-height: 15em;
     overflow-y: auto;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.logBox .eventList {
+    display: inline-block;
+    list-style-type: none;
+}
+
+.logBox .eventList li:not(:first-child) {
+    padding-top: 0.5em;
+}
+
+.logBox .eventList li:not(:last-child) {
+    padding-bottom: 0.5em;
+    border-bottom: 1px dashed;
 }
 
 #urlsSection, #infoSection, #controlsSection, #formSection {

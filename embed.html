@@ -32,6 +32,9 @@ let MixedClass = generateMixinWidget(config.widgetType, config.serviceType);
 let activeService = new serviceTypes[config.serviceType].constructor(config.serviceConfig);
 let activeWidget = new MixedClass(config.widgetConfig, activeService);
 
+activeService.finalizeBoxes();
+activeWidget.finalizeBoxes();
+
 let vue;
 switch(config.boxToShow) {
     case 'display':

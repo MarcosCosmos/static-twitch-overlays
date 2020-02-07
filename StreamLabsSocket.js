@@ -13,8 +13,8 @@ class StreamLabsSocket extends EventEmitter {
         this.socket = null;
     }
 
-    generateSensitiveSettingsBox() {
-        super.generateSensitiveSettingsBox();
+    generateBoxes() {
+        super.generateBoxes();
         this.componentLists.settings.push({
             data: this.coreDataGetter,
             template: `

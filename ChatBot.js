@@ -24,8 +24,8 @@ class ChatBot extends EventEmitter {
         this.client = null;
     }
 
-    generateSensitiveSettingsBox() {
-        super.generateSensitiveSettingsBox();
+    generateBoxes() {
+        super.generateBoxes();
         this.componentLists.settings.push({
             data: this.coreDataGetter,
             template: `

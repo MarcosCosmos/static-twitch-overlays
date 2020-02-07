@@ -85,14 +85,7 @@
     font-family: 'Lobster Two', cursive, sans-serif;
     font-weight: bold;
 }
-.urlText {
-    background: lightgrey;
-    color: black;
-    font-family: monospace;
-    text-shadow: none;
-    padding: 5px;
-    font-weight: normal;
-}
+
 
 /* #recentGoalsCon {
 }

@@ -62,9 +62,9 @@ function generateMixinWidget(widgetType, serviceType) {
             this.service = service;
             this.service.addListener(mixins.listener.bind(this));
         }
-        generateSettingsBox() {
-            super.generateSettingsBox();
-            (mixins.generateSettingsBox.bind(this))();
+        generateBoxes() {
+            super.generateBoxes();
+            (mixins.generateBoxes.bind(this))();
         }
     }
     

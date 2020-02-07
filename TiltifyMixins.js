@@ -1,8 +1,8 @@
 const defaultConfig = {
 };
 
-function generateSettingsBox() {
-    // super.generateSettingsBox();
+function generateBoxes() {
+    // super.generateBoxes();
     // let message = document.createElement('div');
     // message.innerText = 'There are no Tiltify-specific settings at this time.';
     // this.settingsBox.appendChild(message);
@@ -43,17 +43,17 @@ function alertListener() {
 export default { 
     goal: {
         defaultConfig,
-        generateSettingsBox,
+        generateBoxes,
         listener: accumulationListener
     },
     counter: {
         defaultConfig,
-        generateSettingsBox,
+        generateBoxes,
         listener: accumulationListener
     },
     streamEvent: {
         defaultConfig,
-        generateSettingsBox,
+        generateBoxes,
         listener: streamEventListener
     }
 };

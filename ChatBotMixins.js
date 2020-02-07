@@ -2,19 +2,15 @@ const defaultConfig = {
     commandPrefixes: ''
 };
 
-function generateSettingsBox() {
-    // super.generateSettingsBox();
-    // let message = document.createElement('div');
-    // message.innerText = 'There are no Tiltify-specific settings at this time.';
-    // this.settingsBox.appendChild(message);
+function generateBoxes() {
     this.componentLists.settings.push({
         data: this.coreDataGetter,
         template: `
             <form action="" onsubmit="return false">
                 <label :for="config.moduleId + 'commandPrefixes'">
-                            Command(s) to listen for (aliases are comma seperated):
-                        </label>
-                        <input name="commandPrefixes" :id="config.moduleId + 'commandPrefixes'" v-model="config.commandPrefixes"/>
+                    Command(s) to listen for (aliases are comma seperated):
+                </label>
+                <input name="commandPrefixes" :id="config.moduleId + 'commandPrefixes'" v-model="config.commandPrefixes"/>
             </form>
         `,
     });
@@ -82,17 +78,17 @@ function alertListener() {
 export default { 
     goal: {
         defaultConfig,
-        generateSettingsBox,
+        generateBoxes,
         listener: accumulationListener
     },
     counter: {
         defaultConfig,
-        generateSettingsBox,
+        generateBoxes,
         listener: accumulationListener
     },
     streamEvent: {
         defaultConfig,
-        generateSettingsBox,
+        generateBoxes,
         listener: streamEventListener
     }
 };

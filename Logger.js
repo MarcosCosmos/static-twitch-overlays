@@ -5,36 +5,47 @@ import Module from './Module.js';
 
 const defaultConfig = {
     moduleId: 'log',
-    displayTitle: 'Event Log',
     expectRead: false, //whether or not to maintain a queue (pseudo-queue) of unread events for an alert; Actually, todo: use a reader count and a has-read count to solve for multiple alerts?(?)
     defaultData: {events: [], lastEventId: 0},
 };
 
 /**
- * Stores the most recent 100 events; Also keeps track of 'unread' events for an alert, 
+ * Stores the most recent 1000 events
  */
 
+//todo: may be use this as a basis for alerts or *in* alerts?; Alerts would have the option of replaying the event within it's controls, so it kind of makes sense to display differently
 class Logger extends Module {
     constructor(config={}) {
         super(Module.mixin(defaultConfig, config));
-        this.loadData();
     }
 
-    loadData() {
-        this.info = {
-            events: []
-        };
+    // generateDisplayBox() {
+    //    this.componentLists.display.push({
+    //         data: this.coreDataGetter,
+    //         computed: {
+    //             eventsToShow() {
+    //                 return this.info.events.slice(0, 100);
+    //             }
+    //         },
+    //         template: `
+    //             <div class="displayBox logBox" ref="displayBox">
+    //                 <h1>{{this.config.displayTitle}}</h1>
+    //                 <ul id="eventLog">
+    //                     <li v-for="each in eventsToShow">
+    //                         <strong>Type: </strong><span class="eventName">{{each.name}}</span>
+    //                         <br/>
+    //                         <strong>Time: </strong><span class="eventTime">{{each.time}}</span>
+    //                     </li>
+    //                 </ul>
+    //             </div>
+    //         `
+    //     });
+    // }
 
-        let eventsText = localStorage.getItem('eventLog');
-        if(eventsText !== null) {
-            this.info.events = JSON.parse(eventsText)
-                .map(e => {e.time = new Date(Date.parse(e.time)); return {data: e};});
-
-            //fallback against corrupted data from old format
-            if(this.info.events.length > 0 && typeof this.info.events[0].id === 'undefined') {
-                this.info.events = [];
-                this.save();
-            }
+    loadInfo() {
+        super.loadInfo();
+        for(let each of this.info.events) {
+            each.time = new Date(Date.parse(each.time));
         }
     }
 
@@ -64,23 +75,26 @@ class Logger extends Module {
     //     // }
     // }
 
-    /**
-     * stores the current events in localStorage
-     */
-    save() {
-        localStorage.setItem('eventLog', JSON.stringify(this.info.events));
-    }
+    // /**
+    //  * stores the current events in localStorage
+    //  */
+    // save() {
+    //     localStorage.setItem(`${this.config.moduleId}+Even`, JSON.stringify(this.info.events));
+    // }
 
     log(event) {
         event.id = this.info.lastEventId;
         this.info.events.unshift(event);
-        this.info.lastEventId += 1;
+        if(this.lastEventId == Number.MAX_SAFE_INTEGER) {
+            this.info.lastEventId = 0;
+        } else {
+            ++this.info.lastEventId;
+        }
         if(this.info.events.length > 1000) {
             this.info.events = this.info.events.slice(0, 1000);
         }
         this.save();
     }
-
 }
 
 export default Logger;

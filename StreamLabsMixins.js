@@ -3,7 +3,7 @@ const defaultConfig =  {
     eventPlatform: 'streamlabs', //https://dev.streamlabs.com/docs/socket-api <--- type/for info/list,
 };
 
-function generateSettingsBox() {
+function generateBoxes() {
     let self=this;
     this.componentLists.settings.push({
         template: `
@@ -78,8 +78,8 @@ function generateSettingsBox() {
     });
 }
 
-function generateGoalSettingsBox() {
-    (generateSettingsBox.bind(this))();
+function generateGoalBoxes() {
+    (generateBoxes.bind(this))();
     this.componentLists.settings[this.componentLists.settings.length-1].watch['config.eventType'] = function(newValue) {
         switch(newValue) {
             case 'donation':
@@ -95,8 +95,8 @@ function generateGoalSettingsBox() {
     }
 }
 
-function generateStreamEventSettingsBox() {
-    (generateSettingsBox.bind(this))();
+function generateStreamEventBoxes() {
+    (generateBoxes.bind(this))();
     this.componentLists.settings[this.componentLists.settings.length-1].watch['config.eventType'] = function(newValue) {
         switch(newValue) {
             case 'donation':
@@ -193,17 +193,17 @@ function alertListener() {
 let mixins = {
     goal: {
         defaultConfig,
-        generateSettingsBox: generateGoalSettingsBox,
+        generateBoxes: generateGoalBoxes,
         listener: accumulationListener
     },
     counter: {
         defaultConfig,
-        generateSettingsBox,
+        generateBoxes,
         listener: accumulationListener
     },
     streamEvent: {
         defaultConfig,
-        generateSettingsBox: generateStreamEventSettingsBox,
+        generateBoxes: generateStreamEventBoxes,
         listener: streamEventListener
     }
 }

@@ -50,17 +50,63 @@ export default class Module {
             return coreData;
         }
 
-        this.generateDisplayBox();//note that settings and data are things cached into localstorage.
-        this.generateInfoBox();
-        this.generateControlsBox();
-        this.generateSettingsBox();
-        this.generateSensitiveSettingsBox();
-
-        this.finalizeBoxes();
-
         //add a listener for external localStorage changes
         window.addEventListener('storage', () => {
             this.loadInfo();
+        });
+    }
+    
+    generateBoxes() {
+        // this.generateDisplayBox();//note that settings and data are things cached into localstorage.
+        // this.generateInfoBox();
+        // this.generateControlsBox();
+        // this.generateSettingsBox();
+        // this.generateSensitiveSettingsBox();
+
+        let self=this;
+        this.componentLists.settings.push({
+            data: this.coreDataGetter,
+            template: `<h3>{{config.displayTitle}} Settings</h3>`
+        });
+
+        this.componentLists.info.push(
+            {
+                data: this.coreDataGetter,
+                template: `<h3>{{config.displayTitle}} Information</h3>`
+            }
+        );
+        this.componentLists.info.push({
+            data: this.coreDataGetter,
+            template: `
+                <div>
+                    <div>
+                        Current Data: <pre class="currentData">{{JSON.stringify(info, null, 4)}}</pre>
+                    </div>
+                    <div>
+                        Current Settings: <pre class="currentConfig">{{JSON.stringify(config, null, 4)}}</pre>
+                    </div>
+                </div>
+            `
+        });
+        this.componentLists.controls.push({
+            data: this.coreDataGetter,
+            template: `<h3>{{config.displayTitle}} Controls</h3>`
+        });
+        this.componentLists.controls.push({
+            data: this.coreDataGetter,
+            template: `
+                <form action="" onsubmit="return false">
+                    <div>
+                        <span style="color: red;">Warning: this action is cannot be undone</span>
+                        <button type="button" class="eraseButton" v-on:click="eraseData">Erase Data</button>
+                    </div>
+                </form>
+            `,
+            methods: {
+                async eraseData() {
+                    self.eraseData();
+                }
+            }
         });
     }
 
@@ -68,6 +114,7 @@ export default class Module {
      * Shouldn't be called in the constructor chain since it essentially shoe-horns lists of components into object-maps for later use
      */
     finalizeBoxes() {
+        this.generateBoxes();
         for(const each of ['display', 'info', 'settings', 'controls']) {
             let eachComponents = this.componentLists[each];
             let self=this;
@@ -78,7 +125,7 @@ export default class Module {
                     components: self.componentLists[each]
                 }},
                 template: `
-                    <div class="${each}Box">
+                    <div>
                         <div class="${each}Box">
                             <template v-for="each in components">
                                 <component :is="each"></component>
@@ -99,91 +146,18 @@ export default class Module {
     //     return resolver;
     // }
 
-    /**
-     * Should generate the box fully up to date with current data
-     */
-    generateDisplayBox() {
-    }
-
-    /**
-     * Should generate the box fully up to date with current data
-     */
-    generateInfoBox() {
-        this.componentLists.info.push(
-            {
-                data: this.coreDataGetter,
-                template: `<h3>{{config.displayTitle}} Information</h3>`
-            }
-        );
-        this.componentLists.info.push({
-            data: this.coreDataGetter,
-            template: `
-                <div>
-                    <div>
-                        Current Data: <pre class="currentData">{{JSON.stringify(info, null, 4)}}</pre>
-                    </div>
-                    <div>
-                        Current Settings: <pre class="currentConfig">{{JSON.stringify(config, null, 4)}}</pre>
-                    </div>
-                </div>
-            `
-        });
-    }
-
-    /**
-     * Should generate the box fully up to date with current data
-     */
-    generateSensitiveSettingsBox() {
-    }
-
-    /**
-     * Should generate the box fully up to date with current data
-     */
-    generateSettingsBox() {
-        let self=this;
-        this.componentLists.settings.push({
-            data: this.coreDataGetter,
-            template: `<h3>{{config.displayTitle}} Settings</h3>`
-        });
-    }
-
-    /**
-     * Should generate the box fully up to date with current data
-     */
-    generateControlsBox() {
-        var self=this;
-        this.componentLists.controls.push({
-            data: this.coreDataGetter,
-            template: `<h3>{{config.displayTitle}} Controls</h3>`
-        });
-        this.componentLists.controls.push({
-            data: this.coreDataGetter,
-            template: `
-                <form action="" onsubmit="return false">
-                    <div>
-                        <span style="color: red;">Warning: this action is cannot be undone</span>
-                        <button type="button" class="eraseButton" v-on:click="eraseData">Erase Data</button>
-                    </div>
-                </form>
-            `,
-            methods: {
-                async eraseData() {
-                    let release = await self.requestInfoLock();
-                    let recursingAssign = (destination, source) => {
-                        for(const eachKey of Object.keys(source)) {
-                            if(destination[eachKey] == null || (!(source[eachKey] instanceof Object) || source[eachKey] instanceof Array)) {
-                                destination[eachKey] = source[eachKey];
-                            } else {
-                                recursingAssign(destination[eachKey], source[eachKey]);
-                            }
-                        }
-                    };
-                    recursingAssign(this.info, this.config.defaultData);
-                    self._save();
-                    release();
+    eraseData() {
+        let recursingAssign = (destination, source) => {
+            for(const eachKey of Object.keys(source)) {
+                if(destination[eachKey] == null || (!(source[eachKey] instanceof Object) || source[eachKey] instanceof Array)) {
+                    destination[eachKey] = source[eachKey];
+                } else {
+                    recursingAssign(destination[eachKey], source[eachKey]);
                 }
             }
-        });
+        };
+        recursingAssign(this.info, this.config.defaultData);
+        this.save();
     }
 
     // async loadInfo() {
@@ -200,6 +174,7 @@ export default class Module {
     //     await work();
     //     release();
     // }
+
     loadInfo() {
         this.getItems(this.info);
     }

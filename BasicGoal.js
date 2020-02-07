@@ -25,11 +25,12 @@ let defaultConfig;
 export default class BasicGoal extends Counter {
     constructor(config=defaultConfig) {
         super(Module.mixin(defaultConfig, config));
-        this.logger = new Logger({moduleId: `${config.moduleId}_log`, displayTitle: `${config.displayTitle} Log`});
+        this.logger = new Logger({moduleId: `${this.config.moduleId}_log`});
     }
 
-    generateSettingsBox() {
-        super.generateSettingsBox();
+    generateBoxes() {
+        super.generateBoxes();
+        let self=this;
         this.componentLists.settings.push({
             data: this.coreDataGetter,
             template: `
@@ -46,11 +47,6 @@ export default class BasicGoal extends Counter {
                 </form>
             `
         });
-    }
-
-    generateControlsBox() {
-        super.generateControlsBox();
-        let self=this;
         this.componentLists.controls.push({
             data: this.coreDataGetter,
             template: `
@@ -76,7 +72,42 @@ export default class BasicGoal extends Counter {
                 }
             }
         });
+        this.componentLists.controls.push({
+            data() {return {
+                widget: self.coreDataGetter(),
+                logger: self.logger.coreDataGetter()
+            }},
+            computed: {
+                eventsToShow() {
+                    return this.logger.info.events.slice(0, 100);
+                }
+            },
+            template: `
+                <div class="displayBox logBox" ref="displayBox">
+                    <h1>{{widget.config.displayTitle}} Log</h1>
+                    <div class="eventListCon">
+                        <ul class="eventList">
+                            <li v-for="each in eventsToShow">
+                                <strong>Type: </strong><span class="eventName">{{each.name}}</span>
+                                <br/>
+                                <strong>Time: </strong><span class="eventTime">{{each.time.toLocaleString()}}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            `
+        });
     }
+
+    // generateSettingsBox() {
+    //     super.generateSettingsBox();
+        
+    // }
+
+    // generateControlsBox() {
+    //     super.generateControlsBox();
+        
+    // }
 
     /**
      * Adds 1 the goal progress and updates data and elements accordingly
@@ -130,14 +161,20 @@ export default class BasicGoal extends Counter {
             this.info.currentValue = nextValue;
             this.info.goalsReached = totalTimesReached;
         }
-        if(this.config.logger && newTimesReached != 0) {
+        if(newTimesReached != 0) {
             //log events and update the stored values accordingly.
             for(let i=0; i <newTimesReached; ++i) {
-                this.config.logger.log({
-                    name: this.config.displayTitle + ' Goal Reached',
+                this.logger.log({
+                    name: `Goal (${this.config.displayTitle}) Reached`,
                     time: new Date(Date.now())
                 });
             }
         }
     }
+
+    eraseData() {
+        super.eraseData();
+        this.logger.eraseData();
+    }
+
 }

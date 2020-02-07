@@ -30,8 +30,8 @@ class TiltifyScanner extends EventEmitter {
     //     `;
     // }
 
-    generateSensitiveSettingsBox() {
-        super.generateSensitiveSettingsBox();
+    generateBoxes() {
+        super.generateBoxes();
         this.componentLists.settings.push({
             data: this.coreDataGetter,
             template: `

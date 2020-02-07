@@ -15,8 +15,8 @@ export default class BasicDisplay extends Module {
     constructor(config=defaultConfig) {
         super(Module.mixin(defaultConfig, config));
     }
-    generateSettingsBox() {
-        super.generateSettingsBox();
+    generateBoxes() {
+        super.generateBoxes();
 
         this.componentLists.settings.push({
             data: this.coreDataGetter,
