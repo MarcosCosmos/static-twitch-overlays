@@ -44,16 +44,16 @@ export default {
     goal: {
         defaultConfig,
         generateBoxes,
-        listener: accumulationListener
+        generateListener: accumulationListener
     },
     counter: {
         defaultConfig,
         generateBoxes,
-        listener: accumulationListener
+        generateListener: accumulationListener
     },
     streamEvent: {
         defaultConfig,
         generateBoxes,
-        listener: streamEventListener
+        generateListener: streamEventListener
     }
 };

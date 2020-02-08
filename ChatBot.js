@@ -86,7 +86,7 @@ class ChatBot extends EventEmitter {
             if(self.levelOf(tags) >= self.config.userLevel && !self.info.eventsSeen.has(tags.id)) {
                 self.info.eventsSeen.add(tags.id);
                 for(const each of self.listeners) {
-                    await each.onEvent({
+                    await each({
                         channel,
                         tags,
                         message,

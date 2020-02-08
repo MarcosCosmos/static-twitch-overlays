@@ -194,17 +194,17 @@ let mixins = {
     goal: {
         defaultConfig,
         generateBoxes: generateGoalBoxes,
-        listener: accumulationListener
+        generateListener: accumulationListener
     },
     counter: {
         defaultConfig,
         generateBoxes,
-        listener: accumulationListener
+        generateListener: accumulationListener
     },
     streamEvent: {
         defaultConfig,
         generateBoxes: generateStreamEventBoxes,
-        listener: streamEventListener
+        generateListener: streamEventListener
     }
 }
 
