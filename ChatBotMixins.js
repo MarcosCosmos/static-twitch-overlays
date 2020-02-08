@@ -2,7 +2,7 @@ const defaultConfig = {
     commandPrefixes: ''
 };
 
-function generateBoxes() {
+function generateBoxes(processor) {
     this.componentLists.settings.push({
         data: this.coreDataGetter,
         template: `
@@ -15,7 +15,7 @@ function generateBoxes() {
         `,
     });
     const self = this;
-    const processor = processEventAccumulation.bind(this);
+    processor = processor.bind(this);
     let regex = (makeRegex.bind(this))();
     this.componentLists.controls.push({
         data(){return {
@@ -24,12 +24,12 @@ function generateBoxes() {
             demoCommand: '',
         }},
         template: `
-            <form action="" v-on:submit.prevent="sampleCommand">
+            <form action="" @submit.prevent="sampleCommand">
                 <label :for="core.config.moduleId + 'DemoCommand'">
                     Enter Demo Command:
                 </label>
                 <input name="demoCommand" :id="core.config.moduleId + 'DemoCommand'" v-model="demoCommand"/>
-                <button type="submit">Send</button>
+                <button @click="sampleCommand">Send</button>
                 <br/>
                 <strong>Response Message:</strong>
                 <span>{{demoResponse}}</span>
@@ -39,8 +39,8 @@ function generateBoxes() {
             </form>
         `,
         methods: {
-            sampleCommand() {
-                this.demoResponse = processor(
+            sampleCommand(event) {
+                let response = processor(
                     {
                         message: this.demoCommand,
                         tags: {
@@ -49,7 +49,7 @@ function generateBoxes() {
                     },
                     regex
                 ) || '';
-                return false;
+                this.demoResponse = response;
             }
         }
     });
@@ -133,6 +133,19 @@ function streamEventListener() {
     );
 }
 
+function parameterisedListener(processor) {
+    let regex = (makeRegex.bind(this))();
+    processor = processor.bind(this);
+    this.service.addListener(
+        event => {
+            let response = processor(event, regex);
+            if(response) {
+                this.service.client.say(event.channel, response);
+            }
+        }
+    );
+}
+
 function alertListener() {
     console.log('WARNING: NOT YET IMPLEMENTED');
 }
@@ -140,17 +153,17 @@ function alertListener() {
 export default { 
     goal: {
         defaultConfig,
-        generateBoxes,
-        generateListener: accumulationListener
+        generateBoxes(){(generateBoxes.bind(this))(processEventAccumulation)},
+        generateListener(){(parameterisedListener.bind(this))(processEventAccumulation)}
     },
     counter: {
         defaultConfig,
-        generateBoxes,
-        generateListener: accumulationListener
+        generateBoxes(){(generateBoxes.bind(this))(processEventAccumulation)},
+        generateListener(){(parameterisedListener.bind(this))(processEventAccumulation)}
     },
     streamEvent: {
         defaultConfig,
-        generateBoxes,
-        generateListener: streamEventListener
+        generateBoxes(){(generateBoxes.bind(this))(processEventStreamEvent)},
+        generateListener(){(parameterisedListener.bind(this))(processEventStreamEvent)}
     }
 };

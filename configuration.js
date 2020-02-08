@@ -39,6 +39,8 @@ function Set_toJSON(key, value) {
 }
 //todo: required fields?
 
+//TODO: SWITCHING TYPES LOSES MIXIN SETTINGS?
+
 let randomNum = Math.floor(Math.random() * Math.floor(1000000));
 const baseDefaultConfig = {
     moduleId: `widget_${randomNum}`,
