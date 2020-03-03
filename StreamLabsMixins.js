@@ -44,7 +44,7 @@ function generateBoxes() {
                     title: 'Twitch',
                     events: {
                         follow: 'Follow',
-                        subcription: 'Subscription',
+                        subscription: 'Subscription',
                         host: 'Host',
                         bits: 'Bits',
                         raid: 'Raid'
@@ -54,7 +54,7 @@ function generateBoxes() {
                     title: 'Youtube',
                     events: {
                         follow: 'Subscription (for notifications, like a Twitch follow)',
-                        subcription: 'Sponsership (like a Twitch subscription)',
+                        subscription: 'Sponsership (like a Twitch subscription)',
                         superchat: 'Superchat'
                     }
                 },
@@ -62,7 +62,7 @@ function generateBoxes() {
                     title: 'Mixer',
                     events: {
                         follow: 'Follow',
-                        subcription: 'Subscription',
+                        subscription: 'Subscription',
                         host: 'Host'
                     }
                 }
