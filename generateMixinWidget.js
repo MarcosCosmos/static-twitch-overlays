@@ -10,6 +10,7 @@ import ChatBotMixins from './ChatBotMixins.js';
 import BasicAlert from './BasicAlert.js';
 import Logger from './Logger.js';
 import Module from './Module.js';
+import Timer from './Timer.js';
 
 
 let widgetTypes = {
@@ -22,8 +23,12 @@ let widgetTypes = {
         constructor: Counter
     },
     streamEvent: {
-        title: "Stream Event (e.g. follow, donation)",
+        title: 'Stream Event (e.g. follow, donation)',
         constructor: StreamEvent
+    },
+    timer: {
+        title: 'Timer',
+        constructor: Timer
     }
     // ,
     // alert: {

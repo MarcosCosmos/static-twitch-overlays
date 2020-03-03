@@ -66,28 +66,77 @@ function processEventAccumulation(event, regex) {
         let match = event.message.match(regex);
         let amount = NaN;
         let relative = true;
+        let increment = false;
         if(match != null) {
             let payload = event.message.substr(match.index + match[0].length).trim();
-            if (payload[0] == '=') {
-                relative = false;
-                payload = payload.substr(1).trim();
-            }
-            amount = parseFloat(payload);
-        }
-        if(!isNaN(amount) && isFinite(amount)) {
-            if (relative) {
-                this.add(amount);
+            if(payload == '') {
+                increment = true;
             } else {
-                this.set(amount);
+                if (payload[0] == '=') {
+                    relative = false;
+                    payload = payload.substr(1).trim();
+                }
+                amount = parseFloat(payload);
             }
-        } else {
+        }
+        if(increment) {
             this.increment();
+        } else {
+            if(!isNaN(amount) && isFinite(amount)) {
+                if (relative) {
+                    this.add(amount);
+                } else {
+                    this.set(amount);
+                }
+            }
         }
         return `${this.config.displayTitle} is now: ${this.info.currentValue}`;
     }
     return false;
 }
 
+function processEventTimer(event, regex) {
+    if(regex.test(event.message)) {
+        let match = event.message.match(regex);
+        let amount = NaN;
+        let relative = true;
+        let negative = false;
+        if(match != null) {
+            let payload = event.message.substr(match.index + match[0].length).trim();
+            if(payload.length > 0) {
+                if (payload[0] == '=') {
+                    relative = false;
+                    payload = payload.substr(1).trim();
+                }
+                if(payload[0] == "-") {
+                    negative = true;
+                    payload = payload.substr(1);
+                }
+                let parts = payload.split(':');
+                if(parts.length == 3) {
+                    parts = parts.map(each => parseFloat(each));
+                    amount = this.computeMs(parts[0], parts[1], parts[2]);
+                    if(negative) {
+                        amount = -amount;
+                    }
+                }
+            }
+        }
+        if(!isNaN(amount) && isFinite(amount)) {
+            if (relative) {
+                if(this.info.snapshotTime == null) {
+                    this.info.snapshotTime = new Date(Date.now());
+                }
+                this.add(amount);
+            } else {
+                this.info.snapshotTime = new Date(Date.now());
+                this.setReferenceTime(amount, this.info.snapshotTime.valueOf()); //may as well keep using the snapshot, using now wouldn't have major benefit right?
+            }
+        }
+        return `${this.config.displayTitle} is now: ${this.info.currentValue}`;
+    }
+    return false;
+}
 
 function processEventStreamEvent(event, regex) {
     if(regex.test(event.message)) {
@@ -107,31 +156,31 @@ function processEventStreamEvent(event, regex) {
     return false;
 }
 
-function accumulationListener() {
-    let regex = (makeRegex.bind(this))();
-    let processor = processEventAccumulation.bind(this);
-    this.service.addListener(
-        event => {
-            let response = processor(event, regex);
-            if(response) {
-                this.service.client.say(event.channel, response);
-            }
-        }
-    );
-}
+// function accumulationListener() {
+//     let regex = (makeRegex.bind(this))();
+//     let processor = processEventAccumulation.bind(this);
+//     this.service.addListener(
+//         event => {
+//             let response = processor(event, regex);
+//             if(response) {
+//                 this.service.client.say(event.channel, response);
+//             }
+//         }
+//     );
+// }
 
-function streamEventListener() {
-    let regex = (makeRegex.bind(this))();
-    let processor = processEventStreamEvent.bind(this);
-    this.service.addListener(
-        event => {
-            let response = processor(event, regex);
-            if(response) {
-                this.service.client.say(event.channel, response);
-            }
-        }
-    );
-}
+// function streamEventListener() {
+//     let regex = (makeRegex.bind(this))();
+//     let processor = processEventStreamEvent.bind(this);
+//     this.service.addListener(
+//         event => {
+//             let response = processor(event, regex);
+//             if(response) {
+//                 this.service.client.say(event.channel, response);
+//             }
+//         }
+//     );
+// }
 
 function parameterisedListener(processor) {
     let regex = (makeRegex.bind(this))();
@@ -165,5 +214,10 @@ export default {
         defaultConfig,
         generateBoxes(){(generateBoxes.bind(this))(processEventStreamEvent)},
         generateListener(){(parameterisedListener.bind(this))(processEventStreamEvent)}
+    },
+    timer: {
+        defaultConfig,
+        generateBoxes(){(generateBoxes.bind(this))(processEventTimer)},
+        generateListener(){(parameterisedListener.bind(this))(processEventTimer)}
     }
 };

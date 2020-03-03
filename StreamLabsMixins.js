@@ -3,6 +3,12 @@ const defaultConfig =  {
     eventPlatform: 'streamlabs', //https://dev.streamlabs.com/docs/socket-api <--- type/for info/list,
 };
 
+const defaultConfigTimer =  {
+    eventType: 'donation', //https://dev.streamlabs.com/docs/socket-api <--- type/for info/list
+    eventPlatform: 'streamlabs', //https://dev.streamlabs.com/docs/socket-api <--- type/for info/list,
+    extensionAmount: 0
+};
+
 function generateBoxes() {
     let self=this;
     this.componentLists.settings.push({
@@ -78,6 +84,7 @@ function generateBoxes() {
     });
 }
 
+
 function generateGoalBoxes() {
     (generateBoxes.bind(this))();
     this.componentLists.settings[this.componentLists.settings.length-1].watch['config.eventType'] = function(newValue) {
@@ -111,17 +118,126 @@ function generateStreamEventBoxes() {
     }
 }
 
+
+function generateTimerBoxes() {
+    (generateBoxes.bind(this))();
+    function hoursIn(ms) {                    
+        let denominator = 1000*60*60;
+        let result = ms/denominator;
+        return result > 0 ? Math.floor(result) : Math.ceil(result);
+    }
+    function minutesIn(ms) {
+        let denominator = 1000*60;
+        let result = (ms % (60*denominator))/denominator;
+        return result > 0 ? Math.floor(result) : Math.ceil(result);
+    }
+    function secondsIn(ms) {
+        let denominator = 1000;
+        let result = Math.round((ms % (60*denominator))/denominator);
+        return result > 0 ? Math.min(result, 59) : Math.max(result, -59);
+    }
+
+    let self=this;
+    this.componentLists.settings.push({
+        data(){
+            return {
+                core: self.coreDataGetter(),
+                hours: hoursIn(self.config.extensionAmount),
+                minutes: minutesIn(self.config.extensionAmount),
+                seconds: secondsIn(self.config.extensionAmount)
+            }
+        },
+        template: `
+            <form action="" onsubmit="return false">
+                <div>
+                    <label :for="core.config.prefix + 'dummyHours'">
+                        Amount of time to add (hours:minutes:seconds):
+                    </label>
+                    <div>
+                        <input name="dummyHours" type="number" step="1" v-model="dummyHours" :id="core.config.prefix + 'addedHours'"/>
+                        :
+                        <input name="dummyMinutes" type="number" step="1" v-model="dummyMinutes"/>
+                        :
+                        <input name="dummySeconds" type="number" step="1" v-model="dummySeconds"/>
+                    </div>
+                    <br/>
+                    <span class="alert alert-primary">This is the amount of time added each time a user follows, or per dollar donated (or equivilant whole unit in your currency), or per 100 bits - whichever the timer is configured for</span>
+                </div>
+            </form>
+        `,
+        computed: {
+            timerMode: {
+                get() {
+                    return self.info.timerMode;
+                },
+                set(newValue) {
+                    self.setMode(newValue);
+                }
+            },
+            dummyHours: {
+                get() {
+                    return this.hours;
+                },
+                set(newValue) {
+                    let result = parseInt(newValue,10);
+                    if(!isNaN(result)) {
+                        this.updateAmount(result, this.minutes, this.seconds);
+                    }
+                }
+            },
+            dummyMinutes: {
+                get() {
+                    return this.minutes;
+                },
+                set(newValue) {
+                    let result = parseInt(newValue,10);
+                    if(!isNaN(result)) {
+                        this.updateAmount(this.hours, result, this.seconds);
+                    }
+                }
+            },
+            dummySeconds: {
+                get() {
+                    return this.seconds;
+                },
+                set(newValue) {
+                    let result = parseInt(newValue,10);
+                    if(!isNaN(result)) {
+                        this.updateAmount(this.hours, this.minutes, result);
+                    }
+                }
+            }
+        },
+        watch: {
+            'core.config.extensionAmount': function() {
+                this.updateParts();
+            }
+        },
+        methods: {
+            updateAmount(hours, minutes, seconds) {
+                self.config.extensionAmount = self.computeMs(hours, minutes, seconds);
+            },
+            updateParts() {
+                this.hours = hoursIn(self.config.extensionAmount);
+                this.minutes = minutesIn(self.config.extensionAmount);
+                this.seconds = secondsIn(self.config.extensionAmount);
+            }
+        }
+    });
+}
+
 function accumulationListener() {
     this.service.addListener(
         event => {
             if(event.details.for == this.config.eventPlatform && event.details.type == this.config.eventType) {
+                let amount = event.details.message.amount;
                 switch(event.details.type) {
                     case 'superchat':
                         //superchats are measured in micros of a unit, so divide by 1000000 before continueing
-                        event.details.message.amount /= 1000000;
+                        amount /= 1000000;
                     case 'donation':
                     case 'bits':
-                        this.add(event.details.message.amount);
+                        this.add(amount);
                         break;
                     case 'follow':
                     case 'subscription':
@@ -186,6 +302,35 @@ function streamEventListener() {
     );
 }
 
+function timerListener() {
+    this.service.addListener(
+        event => {
+            if(event.details.for == this.config.eventPlatform && event.details.type == this.config.eventType) {
+                let amount = event.details.message.amount;
+                switch(event.details.type) {
+                    case 'superchat':
+                        //superchats are measured in micros of a unit, so divide by 1000000 before continueing
+                        amount /= 10000;
+                    case 'bits':
+                        amount /= 100
+                    case 'donation':
+                        this.add(amount*this.config.extensionAmount);
+                        break;
+                    case 'follow':
+                    case 'subscription':
+                    case 'host':
+                    case 'raid':
+                        this.add(this.config.extensionAmount);
+                        break;
+                    default:
+                        return;//ensure no effect is had by unrecognised events
+
+                }
+            }
+        }
+    );
+}
+
 function alertListener() {
     console.log('WARNING: NOT YET IMPLEMENTED');
 }
@@ -205,6 +350,11 @@ let mixins = {
         defaultConfig,
         generateBoxes: generateStreamEventBoxes,
         generateListener: streamEventListener
+    },
+    timer: {
+        defaultConfig: defaultConfigTimer,
+        generateBoxes: generateTimerBoxes,
+        generateListener: timerListener
     }
 }
 

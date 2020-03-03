@@ -45,6 +45,64 @@ let displayMixins = {
             </div>
         `
     }},
+    timer() {
+        let self=this;
+
+        function hoursIn(ms) {                    
+            let denominator = 1000*60*60;
+            let result = ms/denominator;
+            return result > 0 ? Math.floor(result) : Math.ceil(result);
+        }
+        function minutesIn(ms) {
+            let denominator = 1000*60;
+            let result = (ms % (60*denominator))/denominator;
+            return result > 0 ? Math.floor(result) : Math.ceil(result);
+        }
+        function secondsIn(ms) {
+            let denominator = 1000;
+            let result = Math.round((ms % (60*denominator))/denominator);
+            return result > 0 ? Math.min(result, 59) : Math.max(result, -59);
+        }
+
+        return {
+            data(){return {
+                core: self.coreDataGetter(),
+                gapMilliseconds: self.currentGapMs,
+            }},
+            computed: {
+                hours() {
+                    return hoursIn(this.gapMilliseconds);
+                },
+                minutes() {
+                    return minutesIn(this.gapMilliseconds);
+                },
+                
+                seconds() {
+                    return secondsIn(this.gapMilliseconds);
+                }
+            },
+            watch: {
+                'core.info.referenceTime': function() {
+                    this.gapMilliseconds = self.currentGapMs;
+                },
+                'core.info.snapshotTime': function() {
+                    this.gapMilliseconds = self.currentGapMs;
+                }
+            },
+            template: `
+                <div class="displayBox timerBox" ref="displayBox" style="height: calc(1.5em)">
+                    <div v-for="e in ['forestroke', 'backstroke']" :class="e">
+                        <span v-if="core.config.displayTitle">
+                            {{core.config.displayTitle}}:
+                        </span>
+                        <span>
+                            {{hours}}:{{minutes}}:{{seconds}}
+                        </span>
+                    </div>
+                </div>
+            `
+        }
+    }
     // logger(){return {
     //     data: this.coreDataGetter,
     //     template: `

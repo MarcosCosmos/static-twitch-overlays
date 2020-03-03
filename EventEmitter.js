@@ -20,13 +20,6 @@ class EventEmitter extends Module {
         this.listeners = [];
     }
 
-    start() {
-        
-    }
-
-    stop() {
-    }
-
     updateSettings() {
         this.stop();
         super.updateSettings();

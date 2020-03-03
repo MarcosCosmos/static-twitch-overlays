@@ -149,7 +149,7 @@ export default class Module {
     eraseData() {
         let recursingAssign = (destination, source) => {
             for(const eachKey of Object.keys(source)) {
-                if(destination[eachKey] == null || (!(source[eachKey] instanceof Object) || source[eachKey] instanceof Array)) {
+                if(destination[eachKey] == null || (!(source[eachKey] instanceof Object) || source[eachKey] instanceof Array || source[eachKey] instanceof Date)) {
                     destination[eachKey] = source[eachKey];
                 } else {
                     recursingAssign(destination[eachKey], source[eachKey]);
@@ -206,4 +206,18 @@ export default class Module {
             localStorage.setItem(`${this.config.moduleId}${eachName}`, JSON.stringify(destination[eachName])); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
         }
     }
+
+    /**
+     * mainly used for services, but also for timers, etc
+     */
+    start() {
+        
+    }
+
+    /**
+     * mainly used for services, but also for timers, etc
+     */
+    stop() {
+    }
+
 }
