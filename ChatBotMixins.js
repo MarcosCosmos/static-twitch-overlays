@@ -1,35 +1,52 @@
 const defaultConfig = {
-    commandPrefixes: ''
+    commandPrefixes: []
 };
 
 function generateBoxes(processor) {
     this.componentLists.settings.push({
         data: this.coreDataGetter,
+        computed: {
+            dummyCommandPrefixes: {
+                get() {
+                    return this.config.commandPrefixes.join(',');
+                },
+                set(val) {
+                    this.config.commandPrefixes = val.split(',');
+                }
+            }
+        },
         template: `
             <form action="" onsubmit="return false">
                 <label :for="config.moduleId + 'commandPrefixes'">
                     Command(s) to listen for (aliases are comma seperated):
                 </label>
-                <input name="commandPrefixes" :id="config.moduleId + 'commandPrefixes'" v-model="config.commandPrefixes"/>
+                <input name="commandPrefixes" :id="config.moduleId + 'commandPrefixes'" v-model="dummyCommandPrefixes"/>
             </form>
         `,
     });
     const self = this;
     processor = processor.bind(this);
-    let regex = (makeRegex.bind(this))();
+    // let regex = (makeRegex.bind(this))();
     this.componentLists.controls.push({
         data(){return {
             core: self.coreDataGetter(),
             demoResponse: ' ',
-            demoCommand: '',
+            demoCommand: ''
         }},
+        computed: {
+            regex() {
+                let prefixes = this.core.config.commandPrefixes.map(each => each.trim());
+                let regex = new RegExp(`^(${prefixes.join('|')})`);
+                return regex;
+            }
+        },
         template: `
             <form action="" @submit.prevent="sampleCommand">
                 <label :for="core.config.moduleId + 'DemoCommand'">
                     Enter Demo Command:
                 </label>
                 <input name="demoCommand" :id="core.config.moduleId + 'DemoCommand'" v-model="demoCommand"/>
-                <button @click="sampleCommand">Send</button>
+                <button type="submit">Send</button>
                 <br/>
                 <strong>Response Message:</strong>
                 <span>{{demoResponse}}</span>
@@ -47,7 +64,7 @@ function generateBoxes(processor) {
                             displayName: 'Username'
                         }
                     },
-                    regex
+                    this.regex
                 ) || '';
                 this.demoResponse = response;
             }
@@ -56,7 +73,7 @@ function generateBoxes(processor) {
 }
 
 function makeRegex() {
-    let prefixes = this.config.commandPrefixes.split(',');
+    let prefixes = this.config.commandPrefixes.map(each => each.trim());
     let regex = new RegExp(`^(${prefixes.join('|')})`);
     return regex;
 }
@@ -68,10 +85,11 @@ function processEventAccumulation(event, regex) {
         let relative = true;
         let increment = false;
         if(match != null) {
-            let payload = event.message.substr(match.index + match[0].length).trim();
+            let payload = event.message.substr(match.index + match[0].length);
             if(payload == '') {
                 increment = true;
-            } else {
+            } else if(payload[0] == ' ') { //force a space
+                payload = payload.trim();
                 if (payload[0] == '=') {
                     relative = false;
                     payload = payload.substr(1).trim();
@@ -123,14 +141,12 @@ function processEventTimer(event, regex) {
             }
         }
         if(!isNaN(amount) && isFinite(amount)) {
+            this.timeToNowIfNull();
             if (relative) {
-                if(this.info.snapshotTime == null) {
-                    this.info.snapshotTime = new Date(Date.now());
-                }
                 this.add(amount);
             } else {
                 this.info.snapshotTime = new Date(Date.now());
-                this.setReferenceTime(amount, this.info.snapshotTime.valueOf()); //may as well keep using the snapshot, using now wouldn't have major benefit right?
+                this.setReferenceTime(amount, this.info.snapshotTime.valueOf());
             }
         }
         return `${this.config.displayTitle} is now: ${this.info.currentValue}`;

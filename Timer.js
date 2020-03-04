@@ -8,7 +8,7 @@ let defaultConfig;
     defaultConfig = {
         displayTitle: exampleTitle,
         defaultData: {
-            referenceTime: new Date(0), //in up timers, this is the time the timer was started, in down timers it's some future moment being counted towards
+            referenceTime: null, //in up timers, this is the time the timer was started, in down timers it's some future moment being counted towards
             snapshotTime: null,
             timerMode: 'down',
             isPaused: true,
@@ -97,11 +97,11 @@ export default class Timer extends BasicDisplay {
                        Timer Mode: 
                     </span>
                     <br/>
-                    <input type="radio" name="timerMode" value="up" v-model="core.info.timerMode" :id="core.config.moduleId + 'ModeUp'">
+                    <input type="radio" name="timerMode" value="up" v-model="timerMode" :id="core.config.moduleId + 'ModeUp'">
                     <label :for="core.config.moduleId + 'ModeUp'">
                         Count Up
                     </label>
-                    <input type="radio" name="timerMode" value="down" v-model="core.info.timerMode" :id="core.config.moduleId + 'ModeDown'">
+                    <input type="radio" name="timerMode" value="down" v-model="timerMode" :id="core.config.moduleId + 'ModeDown'">
                     <label :for="core.config.moduleId + 'ModeDown'">
                         Count Down
                     </label>
@@ -191,9 +191,7 @@ export default class Timer extends BasicDisplay {
                     self.unpause();
                 },
                 setTimeGap(hours, minutes, seconds) {
-                    if(self.info.snapshotTime == null) {
-                        self.info.snapshotTime = new Date(Date.now());
-                    }
+                    self.timeToNowIfNull();
                     self.setReferenceTime(self.computeMs(hours, minutes, seconds), self.info.snapshotTime.valueOf());
                 },
                 updateGapParts() {
@@ -231,6 +229,13 @@ export default class Timer extends BasicDisplay {
         });
     }
 
+    timeToNowIfNull() {
+        if(this.info.referenceTime == null) {
+            this.info.snapshotTime = new Date(Date.now());
+            this.info.referenceTime = new Date(this.info.snapshotTime.valueOf());
+        }
+    }
+
     /**
      * Updates the reference time to be gap ms away from relativeTo (the direction is determined based on the current mode)
      * @param {*} gap a duration in ms
@@ -251,6 +256,7 @@ export default class Timer extends BasicDisplay {
     }
 
     add(milliseconds) {
+        this.timeToNowIfNull();
         this.setReferenceTime(milliseconds, this.info.referenceTime.valueOf());
     }
 
@@ -259,7 +265,7 @@ export default class Timer extends BasicDisplay {
     }
 
     updateCurrentGap() {
-        if(this.info.snapshotTime != null) {
+        if(this.info.referenceTime != null) {
             switch(this.info.timerMode) {
                 case 'up':
                     //set the new reference time to however long the duration was when paused, but in the past.
@@ -290,6 +296,7 @@ export default class Timer extends BasicDisplay {
 
     unpause() {
         if(this.info.isPaused) {
+            this.timeToNowIfNull();
             this.setReferenceTime(this.currentGapMs, Date.now());
             this.info.isPaused = false;
             this.save();
@@ -314,10 +321,14 @@ export default class Timer extends BasicDisplay {
     }
 
     setMode(targetMode) {
-        if(targetMode != this.data.timerMode) {
-           //get the gap based on the current mode, then switch modes, then set the gap again to get the same value on the timer in the other direction
+        if(targetMode != this.info.timerMode) {
+           //get the gap based on the current mode, then switch modes, then set the gap again to get the same value on the timer despite moving in the opposite direction?
+           
+           this.stop();
+           this.timeToNowIfNull();
            this.info.timerMode = this.info.timerMode == 'up' ? 'down' : 'up';
-           this.setReference(gap, this.info.snapshotTime.valueOf());
+           this.setReferenceTime(this.currentGapMs, this.info.snapshotTime.valueOf());
+           this.start();
         }
     }
 
@@ -347,7 +358,9 @@ export default class Timer extends BasicDisplay {
     loadInfo() {
         let oldPauseState = this.info.isPaused;
         super.loadInfo();
-        this.info.referenceTime = new Date(Date.parse(this.info.referenceTime));
+        if(this.info.referenceTime != null) {
+            this.info.referenceTime = new Date(Date.parse(this.info.referenceTime));
+        }
         if(this.info.snapshotTime != null) {
             this.info.snapshotTime = new Date(Date.parse(this.info.snapshotTime));
         }
