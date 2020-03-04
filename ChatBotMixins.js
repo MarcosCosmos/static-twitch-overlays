@@ -1,26 +1,16 @@
 const defaultConfig = {
-    commandPrefixes: []
+    commandPrefixes: ''
 };
 
 function generateBoxes(processor) {
     this.componentLists.settings.push({
         data: this.coreDataGetter,
-        computed: {
-            dummyCommandPrefixes: {
-                get() {
-                    return this.config.commandPrefixes.join(',');
-                },
-                set(val) {
-                    this.config.commandPrefixes = val.split(',');
-                }
-            }
-        },
         template: `
             <form action="" onsubmit="return false">
                 <label :for="config.moduleId + 'commandPrefixes'">
                     Command(s) to listen for (aliases are comma seperated):
                 </label>
-                <input name="commandPrefixes" :id="config.moduleId + 'commandPrefixes'" v-model="dummyCommandPrefixes"/>
+                <input name="commandPrefixes" :id="config.moduleId + 'commandPrefixes'" v-model="config.commandPrefixes"/>
             </form>
         `,
     });
@@ -35,7 +25,7 @@ function generateBoxes(processor) {
         }},
         computed: {
             regex() {
-                let prefixes = this.core.config.commandPrefixes.map(each => each.trim());
+                let prefixes = this.core.config.commandPrefixes.split(',').map(each => each.trim());
                 let regex = new RegExp(`^(${prefixes.join('|')})`);
                 return regex;
             }
@@ -73,7 +63,7 @@ function generateBoxes(processor) {
 }
 
 function makeRegex() {
-    let prefixes = this.config.commandPrefixes.map(each => each.trim());
+    let prefixes = this.config.commandPrefixes.split(',').map(each => each.trim());
     let regex = new RegExp(`^(${prefixes.join('|')})`);
     return regex;
 }
