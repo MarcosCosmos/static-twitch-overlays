@@ -9,6 +9,10 @@ const defaultConfig = {
     authToken: '',
     channels: '',
     userLevel: 0,
+    cooldown: 1000,
+    defaultData: {
+        lastMessageTime: new Date(0)
+    }
 };
 
 const userLevels = {
@@ -28,6 +32,16 @@ class ChatBot extends EventEmitter {
         super.generateBoxes();
         this.componentLists.settings.push({
             data: this.coreDataGetter,
+            computed: {
+                _cooldown: {
+                    get() {
+                        return this.config.cooldown/1000;
+                    },
+                    set(val) {
+                        this.config.cooldown = 1000*val;
+                    }
+                }
+            },
             template: `
                 <div>
                     <h4>Authentication Settings</h4>
@@ -46,6 +60,10 @@ class ChatBot extends EventEmitter {
                             Channels (comma seperated):
                         </label>
                         <input name="channels" :id="config.moduleId + 'Channels'" v-model="config.channels"/>
+                        <label :for="config.moduleId + 'Cooldown'">
+                            Cooldown (seconds):
+                        </label>
+                        <input name="cooldown" :id="config.moduleId + 'Cooldown'" v-model="_cooldown"/>
                         <br/>
                         <label :for="config.moduleId + 'UserLevel'">
                             Minimum User Level (ignore commands below this):
@@ -82,8 +100,14 @@ class ChatBot extends EventEmitter {
         });
         let self=this;
         this.client.on('message', async (channel, tags, message, isMyMsg) => {
+            let now = new Date(Date.now());
             if(isMyMsg) return;
             if(self.levelOf(tags) >= self.config.userLevel && !self.info.eventsSeen.has(tags.id)) {
+                if(now - self.info.lastMessageTime < self.config.cooldown) {
+                    return;
+                } else {
+                    self.info.lastMessageTime = now;
+                }
                 self.info.eventsSeen.add(tags.id);
                 for(const each of self.listeners) {
                     await each({
@@ -105,6 +129,13 @@ class ChatBot extends EventEmitter {
             this.client = null;
             await tmp.disconnect();
         }   
+    }
+
+    loadInfo() {
+        super.loadInfo();
+        if(this.info.lastMessageTime != null) {
+            this.info.lastMessageTime = new Date(Date.parse(this.info.lastMessageTime));
+        }
     }
 }
 

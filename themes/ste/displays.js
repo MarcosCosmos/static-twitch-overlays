@@ -102,24 +102,58 @@ let displayMixins = {
                 </div>
             `
         }
+    },
+    poll() {
+        const codeForA = 'a'.charCodeAt(0);
+        const self=this;
+        return {
+            data(){
+                return {
+                    core: self.coreDataGetter(),
+                    results: self.resultsForVue
+                }
+            },
+            computed: {
+                options() {
+                    let winMap = {};
+                    for(const each of this.results.winners) {
+                        winMap[each] = true;
+                    }
+                    let result = this.core
+                        .info
+                        .optionNames
+                        .map(
+                            (each, index) => {
+                                return {
+                                    name: each,
+                                    letter: String.fromCharCode(codeForA+index),
+                                    votes: this.results.votes[each],
+                                    isWinning: winMap[each] || false
+                                };
+                            })
+                    ;
+                    return result;
+                }
+            },
+            template: `
+                <div class="displayBox pollBox" ref="displayBox" v-if="core.info.isVisible">
+                    <div class="outlineBox" style="height: calc(1.5em)">
+                        <div v-for="e in ['forestroke', 'backstroke']" :class="[e, 'pollTitle']">
+                            {{core.info.pollTitle}}
+                            <span v-if="!core.info.isOpen">
+                                (CLOSED)
+                            </span>
+                        </div>
+                    </div>
+                    <div v-for="each of options" class="outlineBox" style="height: calc(1.5em)">
+                        <div v-for="e in ['forestroke', 'backstroke']" :class="[e, each.styleClass, each.isWinning ? 'pollWinner' : '']">
+                            {{each.letter}}) {{each.name}}: {{results.votes[each.name]}}
+                        </div>
+                    </div>
+                </div>
+            `,
+        };
     }
-    // logger(){return {
-    //     data: this.coreDataGetter,
-    //     template: `
-    //         <div class="displayBox logBox" ref="displayBox" style="height: 10em;">
-    //             <h1>${this.config.displayTitle}</h1>
-    //             <ul id="eventLog">
-    //                 <li v-for="each of info.events.slice(0, 100)">
-    //                     <div v-for="e in ['forestroke', 'backstroke']" :class="e">
-    //                         <strong>Type: </strong><span class="eventName">${event.name}</span>
-    //                         <br/>
-    //                         <strong>Time: </strong><span class="eventTime">${event.time}</span>
-    //                     </div>
-    //                 </li>
-    //             </ul>
-    //         </div>
-    //     `
-    // }}
 };
 
 export default displayMixins;

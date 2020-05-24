@@ -49,6 +49,33 @@ class Logger extends Module {
         }
     }
 
+    // generateControlsBox() {
+    //     this.componentLists.controls.push({
+    //         data() {return {
+    //             widget: self.coreDataGetter(),
+    //             logger: self.logger.coreDataGetter()
+    //         }},
+    //         computed: {
+    //             eventsToShow() {
+    //                 return this.logger.info.events.slice(0, 100);
+    //             }
+    //         },
+    //         template: `
+    //             <div class="displayBox logBox" ref="displayBox">
+    //                 <h1>{{widget.config.displayTitle}} Log</h1>
+    //                 <div class="eventListCon">
+    //                     <ul class="eventList">
+    //                         <li v-for="each in eventsToShow">
+    //                             <strong>Type: </strong><span class="eventName">{{each.name}}</span>
+    //                             <br/>
+    //                             <strong>Time: </strong><span class="eventTime">{{each.time.toLocaleString()}}</span>
+    //                         </li>
+    //                     </ul>
+    //                 </div>
+    //             </div>
+    //         `
+    //     });
+    // }
     
 
     // generateControlsBox() {

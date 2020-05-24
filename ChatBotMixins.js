@@ -64,7 +64,7 @@ function generateBoxes(processor) {
 
 function makeRegex() {
     let prefixes = this.config.commandPrefixes.split(',').map(each => each.trim());
-    let regex = new RegExp(`^(${prefixes.join('|')})`);
+    let regex = new RegExp(`^(${prefixes.join('|')})( +|$)`);
     return regex;
 }
 
@@ -111,6 +111,11 @@ function processEventTimer(event, regex) {
         let negative = false;
         if(match != null) {
             let payload = event.message.substr(match.index + match[0].length).trim();
+            if(payload == 'pause' || payload == 'stop') {
+                this.pause();
+            } else if(payload == 'unpause' || payload == 'start') {
+                this.unpause();
+            }
             if(payload.length > 0) {
                 if (payload[0] == '=') {
                     relative = false;
@@ -137,9 +142,10 @@ function processEventTimer(event, regex) {
             } else {
                 this.info.snapshotTime = new Date(Date.now());
                 this.setReferenceTime(amount, this.info.snapshotTime.valueOf());
+                this.save();
             }
         }
-        return `${this.config.displayTitle} is now: ${this.info.currentValue}`;
+        return `${this.config.displayTitle} is now: ${this.getHours()}:${this.getMinutes()}:${this.getSeconds()} (${this.info.isPaused ? 'paused' : 'and counting'})`;
     }
     return false;
 }

@@ -17,6 +17,22 @@ let defaultConfig;
     };
 }
 
+function hoursIn(ms) {                    
+    let denominator = 1000*60*60;
+    let result = ms/denominator;
+    return result > 0 ? Math.floor(result) : Math.ceil(result);
+}
+function minutesIn(ms) {
+    let denominator = 1000*60;
+    let result = (ms % (60*denominator))/denominator;
+    return result > 0 ? Math.floor(result) : Math.ceil(result);
+}
+function secondsIn(ms) {
+    let denominator = 1000;
+    let result = Math.round((ms % (60*denominator))/denominator);
+    return result > 0 ? Math.min(result, 59) : Math.max(result, -59);
+}
+
 //todo: consider adding global options for overriding config via chat?
 
 /**
@@ -40,26 +56,19 @@ export default class Timer extends BasicDisplay {
         this.updateCurrentGap();
     }
 
+    getHours() {
+        return hoursIn(this.currentGapMs);
+    }
+
+    getMinutes() {
+        return minutesIn(this.currentGapMs);
+    }
+
+    getSeconds() {
+        return secondsIn(this.currentGapMs);
+    }
+
     generateBoxes() {
-
-    //these 3 methods compute timer parts with hours as the largest component.
-
-        function hoursIn(ms) {                    
-            let denominator = 1000*60*60;
-            let result = ms/denominator;
-            return result > 0 ? Math.floor(result) : Math.ceil(result);
-        }
-        function minutesIn(ms) {
-            let denominator = 1000*60;
-            let result = (ms % (60*denominator))/denominator;
-            return result > 0 ? Math.floor(result) : Math.ceil(result);
-        }
-        function secondsIn(ms) {
-            let denominator = 1000;
-            let result = Math.round((ms % (60*denominator))/denominator);
-            return result > 0 ? Math.min(result, 59) : Math.max(result, -59);
-        }
-
         super.generateBoxes();
         let self=this;
         // this.componentLists.settings.push({

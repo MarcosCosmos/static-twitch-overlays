@@ -165,7 +165,7 @@ export default class BasicGoal extends Counter {
             //log events and update the stored values accordingly.
             for(let i=0; i <newTimesReached; ++i) {
                 this.logger.log({
-                    name: `Goal (${this.config.displayTitle}) Reached`,
+                    name: `Goal (${this.config.displayTitle}) Reached!`,
                     time: new Date(Date.now())
                 });
             }
