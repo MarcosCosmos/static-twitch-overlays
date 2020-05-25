@@ -101,7 +101,7 @@ export default class SteCustomPoll extends Module {
                 // '!poll ?'
                 // '!poll help'
                 
-                let message = event.message.toLowerCase();
+                let message = event.message;
                 let parts;
 
                 let checkIfOpen = event => {
@@ -237,12 +237,25 @@ export default class SteCustomPoll extends Module {
                                 }
 
                                 let options = [];
+                                let eachOption = {};
+                                let optionName = '';
+                                let isDoingName = true;
                                 for(; i < parts.length; i++) {
-                                    let optionParts = parts[i].split(';');
-                                    let eachOption = {
-                                        name: optionParts[0]
-                                    };
-                                    for(let k = 1; k < optionParts.length; k++) {
+                                    let eachPart = parts[i];
+                                    if(isDoingName) {
+                                        let subParts = eachPart.split(';');
+                                        if(subParts.length > 1) {
+                                            optionName += ' ' + subParts[0].substr(0, subParts[0].length);
+                                            optionName = optionName.trim();
+                                            eachOption.name = optionName;
+                                            eachPart = subParts[1];
+                                        } else {
+                                            optionName += ' ' + eachPart;
+                                            continue;
+                                        }
+                                    }
+                                    let optionParts = eachPart.split(':');
+                                    for(let k = 0; k < optionParts.length; k++) {
                                         let attributeParts = optionParts[k].split('=');
                                         if(attributeParts.length != 0 && attributeParts.length != 2) {
                                             this.chatBot.client.say(event.channel, `Error: Invalid option '${optionParts[k]}'. Options should be of the form: name(';'((key'='value)?';')*(key'='value';'?)? @${event.tags['display-name']}`);
@@ -251,6 +264,10 @@ export default class SteCustomPoll extends Module {
                                         eachOption[attributeParts[0]] = attributeParts[1];
                                     }
                                     options.push(eachOption);
+                                    eachOption = {};
+                                    optionName = '';
+                                    isDoingName = true;
+                                    
                                 }
                                 this.open(pollTitle, options);
                                 this.chatBot.client.say(event.channel, `The poll '${this.info.pollTitle} is now open.`);
@@ -359,6 +376,7 @@ export default class SteCustomPoll extends Module {
             this.info.optionNames.push(each.name);
             this.tally[each.name] = 0;
         }
+        this.updateTally();
 
         this.info.isOpen = true;
         this.info.isVisible = true;
@@ -550,10 +568,10 @@ export default class SteCustomPoll extends Module {
         setTimeout(async () => {
             //now revert, but allow the next call to override immediately
             await fetch(
-                `https://api.lifx.com/v1/scenes/scene_id:${sceneId}/activate`,
+                `https://api.lifx.com/v1/scenes/scene_id:${this.config.lifxDefaultScene}/activate`,
                 {
                     method: 'PUT',
-                    headers: new Headers({'Authorization': `Bearer ${this.config.lifxDefaultScene}`, 'Content-Type': 'application/json'}),
+                    headers: new Headers({'Authorization': `Bearer ${this.config.lifxAccessToken}`, 'Content-Type': 'application/json'}),
                     body: JSON.stringify({
                         "duration": 0.5,
                         "ignore": [],
