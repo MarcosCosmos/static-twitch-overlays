@@ -147,7 +147,7 @@ let displayMixins = {
                     </div>
                     <div v-for="each of options" class="outlineBox" style="height: calc(1.5em)">
                         <div v-for="e in ['forestroke', 'backstroke']" :class="[e, each.styleClass, each.isWinning ? 'pollWinner' : '']">
-                            {{each.letter}}) {{each.name}}: {{results.votes[each.name]}}
+                            {{each.letter}}) {{each.name}}: <!--{{results.votes[each.name]}}-->
                         </div>
                     </div>
                 </div>
