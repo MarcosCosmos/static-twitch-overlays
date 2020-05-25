@@ -139,7 +139,7 @@ let displayMixins = {
                 <div class="displayBox pollBox" ref="displayBox" v-if="core.info.isVisible">
                     <div class="outlineBox" style="height: calc(1.5em)">
                         <div v-for="e in ['forestroke', 'backstroke']" :class="[e, 'pollTitle']">
-                            {{core.info.pollTitle}}
+                            !poll: {{core.info.pollTitle}}
                             <span v-if="!core.info.isOpen">
                                 (CLOSED)
                             </span>
