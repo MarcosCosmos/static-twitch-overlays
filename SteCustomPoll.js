@@ -243,7 +243,7 @@ export default class SteCustomPoll extends Module {
                                 for(; i < parts.length; i++) {
                                     let eachPart = parts[i];
                                     if(isDoingName) {
-                                        let subParts = eachPart.split(';');
+                                        let subParts = eachPart.split(':');
                                         if(subParts.length > 1) {
                                             optionName += ' ' + subParts[0].substr(0, subParts[0].length);
                                             optionName = optionName.trim();
@@ -255,7 +255,7 @@ export default class SteCustomPoll extends Module {
                                         }
                                     }
                                     if(eachPart.length > 0) {
-                                    let optionParts = eachPart.split(':');
+                                        let optionParts = eachPart.split(';');
                                         for(let k = 0; k < optionParts.length; k++) {
                                             if(optionParts[k].length > 0) {
                                                 let attributeParts = optionParts[k].split('=');
