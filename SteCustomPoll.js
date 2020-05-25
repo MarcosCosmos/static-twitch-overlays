@@ -254,14 +254,18 @@ export default class SteCustomPoll extends Module {
                                             continue;
                                         }
                                     }
+                                    if(eachPart.length > 0) {
                                     let optionParts = eachPart.split(':');
-                                    for(let k = 0; k < optionParts.length; k++) {
-                                        let attributeParts = optionParts[k].split('=');
-                                        if(attributeParts.length != 0 && attributeParts.length != 2) {
-                                            this.chatBot.client.say(event.channel, `Error: Invalid option '${optionParts[k]}'. Options should be of the form: name(';'((key'='value)?';')*(key'='value';'?)? @${event.tags['display-name']}`);
-                                            break;
+                                        for(let k = 0; k < optionParts.length; k++) {
+                                            if(optionParts[k].length > 0) {
+                                                let attributeParts = optionParts[k].split('=');
+                                                if(attributeParts.length != 0 && attributeParts.length != 2) {
+                                                    this.chatBot.client.say(event.channel, `Error: Invalid option '${optionParts[k]}'. Options should be of the form: name(';'((key'='value)?';')*(key'='value';'?)? @${event.tags['display-name']}`);
+                                                    return;
+                                                }
+                                                eachOption[attributeParts[0]] = attributeParts[1];
+                                            }
                                         }
-                                        eachOption[attributeParts[0]] = attributeParts[1];
                                     }
                                     options.push(eachOption);
                                     eachOption = {};
@@ -375,6 +379,18 @@ export default class SteCustomPoll extends Module {
             this.info.pollOptions[each.name] = eachResult;
             this.info.optionNames.push(each.name);
             this.tally[each.name] = 0;
+        }
+
+        for(let eachUsername of Object.keys(this.info.votes)) {
+            let eachTarget = this.info.votes[eachUsername];
+            let available = this.info.votes.available || 0;
+            for(let eachOldOption of Object.keys(eachTarget.spent)) {
+                available += eachTarget.spent[eachOldOption];
+            }
+            eachTarget.spent = {};
+            for(let eachOptionName of this.info.optionNames) {
+                eachTarget.spent[eachOptionName] = 0;
+            }
         }
         this.updateTally();
 
