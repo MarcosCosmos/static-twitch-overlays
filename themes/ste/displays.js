@@ -142,7 +142,7 @@ let displayMixins = {
             //     }
             // },
             template: `
-                <div class="displayBox pollBox" ref="displayBox" v-if="core.info.isVisible">
+                <div class="displayBox pollBox" ref="displayBox" v-if="core.info.isVisible" style="text-align:left;">
                     <div class="outlineBox" style="height: calc(1.5em)">
                         <div v-for="e in ['forestroke', 'backstroke']" :class="[e, 'pollTitle']">
                             !poll: {{core.info.pollTitle}}
