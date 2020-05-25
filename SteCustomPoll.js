@@ -547,7 +547,7 @@ export default class SteCustomPoll extends Module {
             }
         );
         //wait so that the light has time to be on for at least a little while (in general)
-        setTimeout(() => {
+        setTimeout(async () => {
             //now revert, but allow the next call to override immediately
             await fetch(
                 `https://api.lifx.com/v1/scenes/scene_id:${sceneId}/activate`,
