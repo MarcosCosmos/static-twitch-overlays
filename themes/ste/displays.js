@@ -104,7 +104,7 @@ let displayMixins = {
         }
     },
     poll() {
-        const codeForA = 'a'.charCodeAt(0);
+        // const codeForA = 'a'.charCodeAt(0);
         const self=this;
         return {
             data(){
@@ -113,28 +113,34 @@ let displayMixins = {
                     results: self.resultsForVue
                 }
             },
-            computed: {
-                options() {
-                    let winMap = {};
-                    for(const each of this.results.winners) {
-                        winMap[each] = true;
-                    }
-                    let result = this.core
-                        .info
-                        .optionNames
-                        .map(
-                            (each, index) => {
-                                return {
-                                    name: each,
-                                    letter: String.fromCharCode(codeForA+index),
-                                    votes: this.results.votes[each],
-                                    isWinning: winMap[each] || false
-                                };
-                            })
-                    ;
-                    return result;
-                }
-            },
+            // computed: {
+            //     options() {
+            //         // if(this.resultToggle || !this.resultToggle) {
+            //             if(this.results.votes) {
+            //                 let winMap = {};
+            //                 for(const each of this.results.winners) {
+            //                     winMap[each] = true;
+            //                 }
+            //                 let result = this.core
+            //                     .info
+            //                     .optionNames
+            //                     .map(
+            //                         (each, index) => {
+            //                             return {
+            //                                 name: each,
+            //                                 letter: String.fromCharCode(codeForA+index),
+            //                                 votes: this.results.votes[each],
+            //                                 isWinning: winMap[each] || false
+            //                             };
+            //                         })
+            //                 ;
+            //                 return result;
+            //             } else {
+            //                 return [];
+            //             }
+            //         // }
+            //     }
+            // },
             template: `
                 <div class="displayBox pollBox" ref="displayBox" v-if="core.info.isVisible">
                     <div class="outlineBox" style="height: calc(1.5em)">
@@ -145,9 +151,9 @@ let displayMixins = {
                             </span>
                         </div>
                     </div>
-                    <div v-for="each of options" class="outlineBox" style="height: calc(1.5em)">
+                    <div v-for="each of results" class="outlineBox" style="height: calc(1.5em)">
                         <div v-for="e in ['forestroke', 'backstroke']" :class="[e, each.styleClass, each.isWinning ? 'pollWinner' : '']">
-                            {{each.letter}}) {{each.name}}<!--: {{results.votes[each.name]}}-->
+                            {{each.letter}}) {{each.name}}: {{each.votes}}
                         </div>
                     </div>
                 </div>

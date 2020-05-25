@@ -31,6 +31,8 @@ let defaultConfig;
     };
 }
 
+const codeForA = 'a'.charCodeAt(0);
+
 export default class SteCustomPoll extends Module {
     constructor(config=defaultConfig) {
         config = Module.mixin(defaultConfig, config);
@@ -75,8 +77,6 @@ export default class SteCustomPoll extends Module {
                 }
             }
         );
-
-        let codeForA = 'a'.charCodeAt(0);
 
         let regex;
         {
@@ -292,7 +292,7 @@ export default class SteCustomPoll extends Module {
                             this.chatBot.client.say(event.channel, `The poll '${this.info.pollTitle} is now open.`);
                             break;
                         case 'results':
-                            this.chatBot.client.say(event.channel, `The current results for the poll '${this.info.pollTitle}' are: ${this.info.optionNames.map((name,index) => String.fromCharCode(codeForA+index) + ') ' + name + ': ' + this.tally[name]).join(', ')}; The winning option${this.winners.length > 1 ? 's are' : ' is'}: ${this.winners.join(', ')}`);
+                            this.chatBot.client.say(event.channel, `The current results for the poll '${this.info.pollTitle}' are: ${this.info.optionNames.map((name,index) => String.fromCharCode(codeForA+index) + ') ' + name + ': ' + this.results.votes[name]).join(', ')}; The winning option${this.results.winners.length > 1 ? 's are' : ' is'}: ${this.results.winners.join(', ')}`);
                             break;
                         case 'cleardata':
                             if(!checkIsMod(event)) {
@@ -372,13 +372,13 @@ export default class SteCustomPoll extends Module {
         //setup the assigned votes as zero for each of the new options;
         this.info.pollOptions = {};
         this.info.optionNames = [];
-        this.tally = {};
+        this.results.votes = {};
         for(let each of options) {
             let eachResult = {};
             Object.assign(eachResult, each);
             this.info.pollOptions[each.name] = eachResult;
             this.info.optionNames.push(each.name);
-            this.tally[each.name] = 0;
+            this.results.votes[each.name] = 0;
         }
 
         for(let eachUsername of Object.keys(this.info.votes)) {
@@ -459,7 +459,7 @@ export default class SteCustomPoll extends Module {
             let amount = userVotes.spent[eachOption];
             userVotes.available += amount;
             userVotes.spent[eachOption] -= amount;
-            this.tally[eachOption] -= amount;
+            this.results.votes[eachOption] -= amount;
             userVotes.spent[eachOption] = 0;
         }
 
@@ -486,7 +486,7 @@ export default class SteCustomPoll extends Module {
 
         this.save();
 
-        this.tally[optionName] += numberOfVotes;
+        this.results.votes[optionName] += numberOfVotes;
         this.updateTally();
 
         if(numberOfVotes > 0 && typeof this.info.pollOptions[optionName].sceneId !== 'undefined') {
@@ -506,7 +506,7 @@ export default class SteCustomPoll extends Module {
         let countToBeat = -1;
         for(let i=0; i<this.info.optionNames.length; i++) {
             let eachName = this.info.optionNames[i];
-            let eachCount = this.tally[eachName];
+            let eachCount = this.results.votes[eachName];
             if(eachCount < countToBeat) {
                 continue;
             }
@@ -518,27 +518,47 @@ export default class SteCustomPoll extends Module {
                 winners.push(eachName);
             }
         }
-        this.winners = winners;
-        this.resultsForVue = {
-            votes: this.tally,
-            winners: winners
-        };
-    }
+        this.results.winners = winners;
+        
+        let winMap = {};
+        for(const each of this.results.winners) {
+            winMap[each] = true;
+        }
+        this.resultsForVue.splice(0);
+        Array.prototype.splice.apply(this.resultsForVue, [0, 0].concat(
+            this.info
+            .optionNames
+            .map(
+                (each, index) => {
+                    return {
+                        name: each,
+                        letter: String.fromCharCode(codeForA+index),
+                        votes: this.results.votes[each],
+                        isWinning: winMap[each] || false
+                    };
+                }
+            ))
+        );
+}
 
     loadInfo() {
         super.loadInfo();
         
         //initialise the tally
-        this.tally = {};
+        this.results = {
+            votes: {},
+            winners: []
+        };
 
+        this.resultsForVue = [];
         for (const eachName of this.info.optionNames) {
-            this.tally[eachName] = 0;
+            this.results.votes[eachName] = 0;
         }
 
         for(const eachUsername of Object.keys(this.info.votes)) {
             const eachUserVotes = this.info.votes[eachUsername];
             for (const eachName of this.info.optionNames) {
-                this.tally[eachName] += eachUserVotes.spent[eachName];
+                this.results.votes[eachName] += eachUserVotes.spent[eachName];
             }
         }
 
