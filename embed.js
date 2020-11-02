@@ -28,7 +28,7 @@ let vue;
 switch(config.boxToShow) {
     case 'display':
         let work = async () => {
-            let themeJsUrl = `./themes/${config.theme}/displays.js`;
+            let themeJsUrl = `https://marcoscosmos.gitlab.io/static-twitch-overlays/themes/${config.theme}/displays.js`;
             if((await fetch(themeJsUrl)).status != 200){
                 //fallback to the default theme
                 config.theme = 'default';
@@ -45,7 +45,7 @@ switch(config.boxToShow) {
             }
             let newStyleSheet = document.createElement('link');
             newStyleSheet.rel = 'stylesheet';
-            newStyleSheet.href = `./themes/${config.theme}/style.css`;
+            newStyleSheet.href = `https://marcoscosmos.gitlab.io/static-twitch-overlays/themes/${config.theme}/style.css`;
             newStyleSheet.id = 'themeStyle';
             
             document.head.appendChild(newStyleSheet);

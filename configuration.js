@@ -265,8 +265,8 @@ let doWork = async () => {
         methods: {
             async loadTheme() {
                 //only change theme if the new theme is real
-                let themeJsUrl = `https://marcoscosmos.gitlab.io/static-twitch-overlays/themes/${this.theme}/displays.js`;
-                if((await fetch(themeJsUrl)).status == 200){
+                let themeJsUrl = `./themes/${this.theme}/displays.js`;
+                if((await fetch(themeJsUrl).status == 200){
                     let newBoxes = (await import(themeJsUrl)).default;
                     //assign only those that exist;
                     for(const eachKey of Object.keys(newBoxes)) {
@@ -281,7 +281,7 @@ let doWork = async () => {
                     }
                     let newStyleSheet = document.createElement('link');
                     newStyleSheet.rel = 'stylesheet';
-                    newStyleSheet.href = `https://marcoscosmos.gitlab.io/static-twitch-overlays/themes/${this.theme}/style.css`;
+                    newStyleSheet.href = `./themes/${this.theme}/style.css`;
                     newStyleSheet.id = 'themeStyle';
                     
                     document.head.appendChild(newStyleSheet);
