@@ -78,7 +78,7 @@ function processEventAccumulation(event, regex) {
             let payload = event.message.substr(match.index + match[0].length);
             if(payload == '') {
                 increment = true;
-            } else if(payload[0] == ' ') { //force a space
+            } else { //force a space
                 payload = payload.trim();
                 if (payload[0] == '=') {
                     relative = false;
