@@ -35,7 +35,7 @@ export default class Module {
         this.config = Module.mixin(defaultConfig, config);
         this.info = Module.mixin({}, this.config.defaultData);
 
-        if(SE_API && SE_API.store) {
+        if(typeof SE_API !== 'undefined' && typeof SE_API.store !== 'undefined') {
             this.storage = SE_API.store;
         } else {
             this.storage = localStorageWrapper;
