@@ -5,7 +5,12 @@ let defaultConfig;
         moduleId: 'exampleWidget', //note: displayable, numeric moduleIdes should be managable via css
         defaultData: {},
     };
-}        
+}
+
+let localStorageWrapper = {
+    get: (k) => localStorage.getItem(k),
+    set: (k,v) => localStorage.setItem(k,v)
+}
 
 /*
     This defines the base/common contents of an overlay module, which gets interacted with by the core
@@ -29,30 +34,38 @@ export default class Module {
     constructor(config={}) {
         this.config = Module.mixin(defaultConfig, config);
         this.info = Module.mixin({}, this.config.defaultData);
-        this.loadInfo();
-        
-        
-        this.componentLists = {};
 
-        this.boxes = {};
-
-        for(const each of ['display', 'info', 'settings', 'controls']) {
-            this.componentLists[each] = [];
+        if(SE_API && SE_API.store) {
+            this.storage = SE_API.store;
+        } else {
+            this.storage = localStorageWrapper;
         }
 
-        //prepare this for most of the boxes
-        let coreData = {
-            config: this.config,
-            info: this.info
-        };
+        this.initPromise = this.loadInfo().then(() => {
+        
+        
+            this.componentLists = {};
 
-        this.coreDataGetter = function() {
-            return coreData;
-        }
+            this.boxes = {};
 
-        //add a listener for external localStorage changes
-        window.addEventListener('storage', () => {
-            this.loadInfo();
+            for(const each of ['display', 'info', 'settings', 'controls']) {
+                this.componentLists[each] = [];
+            }
+
+            //prepare this for most of the boxes
+            let coreData = {
+                config: this.config,
+                info: this.info
+            };
+
+            this.coreDataGetter = function() {
+                return coreData;
+            }
+
+            //add a listener for external localStorage changes
+            window.addEventListener('storage', async () => {
+                await this.loadInfo();
+            });
         });
     }
     
@@ -113,28 +126,29 @@ export default class Module {
     /**
      * Shouldn't be called in the constructor chain since it essentially shoe-horns lists of components into object-maps for later use
      */
-    finalizeBoxes() {
-        this.generateBoxes();
-        for(const each of ['display', 'info', 'settings', 'controls']) {
-            let eachComponents = this.componentLists[each];
-            let self=this;
-            this.boxes[each] = {
-                data: function(){return {
-                    config: self.config,
-                    info: self.info,
-                    components: self.componentLists[each]
-                }},
-                template: `
-                    <div>
-                        <div class="${each}Box">
-                            <template v-for="each in components">
-                                <component :is="each"></component>
-                            </template>
+    async finalizeBoxes() {
+        await this.initPromise.then(() => {this.generateBoxes();
+            for(const each of ['display', 'info', 'settings', 'controls']) {
+                let eachComponents = this.componentLists[each];
+                let self=this;
+                this.boxes[each] = {
+                    data: function(){return {
+                        config: self.config,
+                        info: self.info,
+                        components: self.componentLists[each]
+                    }},
+                    template: `
+                        <div>
+                            <div class="${each}Box">
+                                <template v-for="each in components">
+                                    <component :is="each"></component>
+                                </template>
+                            </div>
                         </div>
-                    </div>
-                `
-            };
-        }
+                    `
+                };
+            }
+        });
 
     }
 
@@ -146,7 +160,7 @@ export default class Module {
     //     return resolver;
     // }
 
-    eraseData() {
+    async eraseData() {
         let recursingAssign = (destination, source) => {
             for(const eachKey of Object.keys(source)) {
                 if(destination[eachKey] == null || (!(source[eachKey] instanceof Object) || source[eachKey] instanceof Array || source[eachKey] instanceof Date)) {
@@ -157,7 +171,7 @@ export default class Module {
             }
         };
         recursingAssign(this.info, this.config.defaultData);
-        this.save();
+        await this.save();
     }
 
     // async loadInfo() {
@@ -175,11 +189,11 @@ export default class Module {
     //     release();
     // }
 
-    loadInfo() {
-        this.getItems(this.info);
+    async loadInfo() {
+        await this.getItems(this.info);
     }
-    save() {
-        this.storeItems(this.info);
+    async save() {
+        await this.storeItems(this.info);
     }
 
     /**
@@ -187,11 +201,11 @@ export default class Module {
      * @param Object destination
      * Note: this method can only safely deal with JSON-compatible data
      */
-    getItems(destination) {
+    async getItems(destination) {
         for(let eachName in destination) {
-            let tmp = localStorage.getItem(`${this.config.moduleId}${eachName}`); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
+            let tmp = await this.storage.get(`${this.config.moduleId}${eachName}`); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
             if(tmp !== null) {
-                destination[eachName] = JSON.parse(tmp);;
+                destination[eachName] = JSON.parse(tmp);
             }
         }
     }
@@ -201,9 +215,9 @@ export default class Module {
      * @param Object destination 
      * Note: this method can only safely deal with JSON-compatible data
      */
-    storeItems(destination) {
+    async storeItems(destination) {
         for(let eachName in destination) {
-            localStorage.setItem(`${this.config.moduleId}${eachName}`, JSON.stringify(destination[eachName])); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
+            await this.storage.set(`${this.config.moduleId}${eachName}`, JSON.stringify(destination[eachName])); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
         }
     }
 

@@ -31,13 +31,13 @@ class StreamLabsSocket extends EventEmitter {
         });
     }
 
-    start() {
+    async start() {
         //Connect to socket
         this.socket = io(`https://sockets.streamlabs.com?token=${this.config.socketToken}`, {transports: ['websocket']});
 
         this.socket.on('error', (err) => console.err(err));
 
-        let handleOneEvent = eventData => {
+        let handleOneEvent = async eventData => {
             if(!this.info.eventsSeen.has(eventData.message._id)) { 
                 this.info.eventsSeen.add(eventData.message._id);
                 for(const eachListener of this.listeners) {
@@ -50,24 +50,24 @@ class StreamLabsSocket extends EventEmitter {
                         console.error(err);
                     }
                 }
-                this.save();
+                await this.save();
             }
         };
 
         //Perform Action on event
-        this.socket.on('event', (eventData) => {
+        this.socket.on('event', async (eventData) => {
             for(let each of eventData.message) {
-                handleOneEvent({type: eventData.type, for: eventData.for, message: each});
+                await handleOneEvent({type: eventData.type, for: eventData.for, message: each});
             }
             
         });
 
-        this.socket.open();
+        await this.socket.open();
     }
 
-    stop() {
+    async stop() {
         if(this.socket) {
-            this.socket.close();
+            await this.socket.close();
             this.socket = null;
         }   
     }

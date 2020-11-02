@@ -112,33 +112,33 @@ export default class BasicGoal extends Counter {
     /**
      * Adds 1 the goal progress and updates data and elements accordingly
      */
-    increment() {
+    async increment() {
         ++this.info.currentValue;
         ++this.info.totalValue;
         this.checkGoalReached();
-        this.save(); //ironically, this probably achieves that tracability mentioned in veux?
+        await this.save(); //ironically, this probably achieves that tracability mentioned in veux?
     }
 
     /**
      * Adds the given amount to the goal progress and updates data and elements accordingly
      * @param float amount 
      */
-    add(amount) {
+    async add(amount) {
         this.info.currentValue += amount;
         this.info.totalValue += amount;
         this.checkGoalReached();
-        this.save(); //ironically, this probably achieves that tracability mentioned in veux?
+        await this.save(); //ironically, this probably achieves that tracability mentioned in veux?
     }
 
     /**
      * Sets the goal progress to the given amount and updates data and elements accordingly
      * @param float amount 
      */
-    set(amount) {
+    async set(amount) {
         this.info.totalValue += this.info.currentValue-amount;
         this.info.currentValue = amount;
         this.checkGoalReached();
-        this.save();
+        await this.save();
     }
 
     checkGoalReached() {

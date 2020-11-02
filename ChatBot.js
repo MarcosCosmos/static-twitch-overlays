@@ -117,7 +117,7 @@ class ChatBot extends EventEmitter {
                         self
                     });
                 }
-                self.save();
+                await self.save();
             }
         });
         this.client.connect();
@@ -131,8 +131,8 @@ class ChatBot extends EventEmitter {
         }   
     }
 
-    loadInfo() {
-        super.loadInfo();
+    async loadInfo() {
+        await super.loadInfo();
         if(this.info.lastMessageTime != null) {
             this.info.lastMessageTime = new Date(Date.parse(this.info.lastMessageTime));
         }

@@ -78,7 +78,7 @@ function processEventAccumulation(event, regex) {
             let payload = event.message.substr(match.index + match[0].length);
             if(payload == '') {
                 increment = true;
-            } else { //force a space
+            } else { 
                 payload = payload.trim();
                 if (payload[0] == '=') {
                     relative = false;
@@ -103,7 +103,7 @@ function processEventAccumulation(event, regex) {
     return false;
 }
 
-function processEventTimer(event, regex) {
+async function processEventTimer(event, regex) {
     if(regex.test(event.message)) {
         let match = event.message.match(regex);
         let amount = NaN;
@@ -142,7 +142,7 @@ function processEventTimer(event, regex) {
             } else {
                 this.info.snapshotTime = new Date(Date.now());
                 this.setReferenceTime(amount, this.info.snapshotTime.valueOf());
-                this.save();
+                await this.save();
             }
         }
         return `${this.config.displayTitle} is now: ${this.getHours()}:${this.getMinutes()}:${this.getSeconds()} (${this.info.isPaused ? 'paused' : 'and counting'})`;
@@ -150,7 +150,7 @@ function processEventTimer(event, regex) {
     return false;
 }
 
-function processEventStreamEvent(event, regex) {
+async function processEventStreamEvent(event, regex) {
     if(regex.test(event.message)) {
         let match = event.message.match(regex);
         let payload = '';
@@ -162,7 +162,7 @@ function processEventStreamEvent(event, regex) {
             detail: payload,
             raw: event
         };
-        this.save();
+        await this.save();
         return `Message recieved! @${event.tags.displayName}`;
     }
     return false;
@@ -198,8 +198,8 @@ function parameterisedListener(processor) {
     let regex = (makeRegex.bind(this))();
     processor = processor.bind(this);
     this.service.addListener(
-        event => {
-            let response = processor(event, regex);
+        async event => {
+            let response = await processor(event, regex);
             if(response) {
                 this.service.client.say(event.channel, response);
             }

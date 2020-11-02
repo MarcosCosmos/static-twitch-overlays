@@ -53,7 +53,7 @@ export default class Timer extends BasicDisplay {
         
         //a utility var used internally to reduce repetitive computation, but never saved to storage since it would almost-never stay relevant/accurate
         this.currentGapMs = 0;
-        this.updateCurrentGap();
+        this.initPromise.then(()=>this.updateCurrentGap());
     }
 
     getHours() {
@@ -250,7 +250,7 @@ export default class Timer extends BasicDisplay {
      * @param {*} gap a duration in ms
      * @param {*} relativeTo defaults to zero (the base reference epoch for js time)
      */
-    setReferenceTime(gap, relativeTo=0) {
+    async setReferenceTime(gap, relativeTo=0) {
         switch(this.info.timerMode) {
             case 'up':
                 //set the new reference time to however long the duration was when paused, but in the past.
@@ -261,7 +261,7 @@ export default class Timer extends BasicDisplay {
                 break;
         }
         this.updateCurrentGap();
-        this.save();
+        await this.save();
     }
 
     add(milliseconds) {
@@ -294,22 +294,22 @@ export default class Timer extends BasicDisplay {
         this.updateCurrentGap();
     }
 
-    pause() {
+    async pause() {
         if(!this.info.isPaused) {
             this.updateSnapshot();
             this.info.isPaused = true;
-            this.save();
+            await this.save();
             this.stop();
         }
     }
 
-    unpause() {
+    async unpause() {
         if(this.info.isPaused) {
             this.timeToNowIfNull();
             this.setReferenceTime(this.currentGapMs, Date.now());
             this.info.isPaused = false;
-            this.save();
-            this.start();
+            await this.save();
+            await this.start();
         }
     }
 
@@ -320,16 +320,16 @@ export default class Timer extends BasicDisplay {
         }
     }
 
-    start() {
+    async start() {
         if(!this.info.isPaused && this.updateInterval == null) {
-            this.updateInterval = setInterval(() => {
+            this.updateInterval = setInterval(async () => {
                 this.updateSnapshot();
-                this.checkFinished();
+                await this.checkFinished();
             })
         }
     }
 
-    setMode(targetMode) {
+    async setMode(targetMode) {
         if(targetMode != this.info.timerMode) {
            //get the gap based on the current mode, then switch modes, then set the gap again to get the same value on the timer despite moving in the opposite direction?
            
@@ -337,14 +337,14 @@ export default class Timer extends BasicDisplay {
            this.timeToNowIfNull();
            this.info.timerMode = this.info.timerMode == 'up' ? 'down' : 'up';
            this.setReferenceTime(this.currentGapMs, this.info.snapshotTime.valueOf());
-           this.start();
+           await this.start();
         }
     }
 
     /**
      * Only timers counters down can 'finish', and the timer must become non-zero again to unset it
      */
-    checkFinished() {
+    async checkFinished() {
         if(!this.info.finishSeen) {
             if(this.currentGapMs <= 0) {
                 this.logger.log({
@@ -355,18 +355,18 @@ export default class Timer extends BasicDisplay {
                 // this.pause();
                 // this.info.snapshotTime = null;
                 // this.updateCurrentGap();
-                this.save();
+                await this.save();
             }
         } else if(this.currentGapMs > 0) {
             //if we've already finished, but are no longer finished, then clear the flag to allow for finishing again
             this.info.finishSeen = false;
-            this.save();
+            await this.save();
         }
     }
 
-    loadInfo() {
+    async loadInfo() {
         let oldPauseState = this.info.isPaused;
-        super.loadInfo();
+        await super.loadInfo();
         if(this.info.referenceTime != null) {
             this.info.referenceTime = new Date(Date.parse(this.info.referenceTime));
         }
@@ -379,15 +379,15 @@ export default class Timer extends BasicDisplay {
             if(this.info.isPaused) {
                 this.stop();
             } else {
-                this.start();
+                await this.start();
             }
         }
     }
 
-    eraseData() {
-        this.pause();
-        super.eraseData();
-        this.logger.eraseData();
+    async eraseData() {
+        await this.pause();
+        await super.eraseData();
+        await this.logger.eraseData();
         this.updateCurrentGap();
     }
 }

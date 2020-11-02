@@ -37,8 +37,8 @@ class LogReader extends EventEmitter {
     //     });
     // }
 
-    loadInfo() {
-        super.loadInfo();
+    async loadInfo() {
+        await super.loadInfo();
         for(let each of this.info.events) {
             each.time = new Date(Date.parse(each.time));
         }

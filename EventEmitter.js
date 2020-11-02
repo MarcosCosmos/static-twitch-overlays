@@ -36,9 +36,9 @@ class EventEmitter extends Module {
     }
 
     //use these overloads to deal with the set business
-    loadInfo() {
+    async loadInfo() {
         let tmp = {};
-        this.getItems(tmp);
+        await this.getItems(tmp);
         if(tmp.eventsSeen) {
             tmp.eventsSeen = new Set([...tmp.eventsSeen, ...this.info.eventsSeen]);
         } else if(this.info.eventsSeen instanceof Array) {

@@ -228,7 +228,7 @@ function generateTimerBoxes() {
 
 function accumulationListener() {
     this.service.addListener(
-        event => {
+        async event => {
             if(event.details.for == this.config.eventPlatform && event.details.type == this.config.eventType) {
                 let amount = event.details.message.amount;
                 switch(event.details.type) {
@@ -237,13 +237,13 @@ function accumulationListener() {
                         amount /= 1000000;
                     case 'donation':
                     case 'bits':
-                        this.add(amount);
+                        await this.add(amount);
                         break;
                     case 'follow':
                     case 'subscription':
                     case 'host':
                     case 'raid':
-                        this.increment();
+                        await this.increment();
                         break;
                     default:
                         return;//ensure no effect is had by unrecognised events
@@ -258,7 +258,7 @@ function accumulationListener() {
 
 function streamEventListener() {
     this.service.addListener(
-        event => {
+        async event => {
             if(event.details.for == this.config.eventPlatform && event.details.type == this.config.eventType) {
                 switch(event.details.type) {
                     case 'superchat':
@@ -296,7 +296,7 @@ function streamEventListener() {
                         return;//ensure no effect is had by unrecognised events
 
                 }
-                this.save();
+                await this.save();
             }
         }
     );
@@ -304,7 +304,7 @@ function streamEventListener() {
 
 function timerListener() {
     this.service.addListener(
-        event => {
+        async event => {
             if(event.details.for == this.config.eventPlatform && event.details.type == this.config.eventType) {
                 let amount = event.details.message.amount;
                 switch(event.details.type) {
@@ -314,13 +314,13 @@ function timerListener() {
                     case 'bits':
                         amount /= 100
                     case 'donation':
-                        this.add(amount*this.config.extensionAmount);
+                        await this.add(amount*this.config.extensionAmount);
                         break;
                     case 'follow':
                     case 'subscription':
                     case 'host':
                     case 'raid':
-                        this.add(this.config.extensionAmount);
+                        await this.add(this.config.extensionAmount);
                         break;
                     default:
                         return;//ensure no effect is had by unrecognised events

@@ -123,10 +123,10 @@ function generateTimerBoxes() {
 
 function accumulationListener() {
     this.service.addListener(
-        event => {
+        async event => {
             switch(event.type) {
                 case 'donation':
-                    this.add(event.details.amount);
+                    await this.add(event.details.amount);
                     break;
             }
         }
@@ -135,23 +135,23 @@ function accumulationListener() {
 
 function streamEventListener() {
     this.service.addListener(
-        event => {
+        async event => {
             this.info.currentEvent = {
                 by: event.details.name,
                 detail: event.details.message.formattedAmount,
                 raw: event.details
             };
-            this.save();
+            await this.save();
         }
     );
 }
 
 function timerListener() {
     this.service.addListener(
-        event => {
+        async event => {
             switch(event.type) {
                 case 'donation':
-                    this.add(event.details.amount*this.config.extensionAmount);
+                    await this.add(event.details.amount*this.config.extensionAmount);
                     break;
             }
         }

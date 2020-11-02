@@ -91,7 +91,7 @@ class TiltifyScanner extends EventEmitter {
                             this.info.eventsSeen.add(each.id);
                             for(const eachListener of this.listeners) {
                                 try {
-                                    eachListener({
+                                    await eachListener({
                                         type: 'donation',
                                         details: each
                                     });

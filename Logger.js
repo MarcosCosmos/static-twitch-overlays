@@ -42,8 +42,8 @@ class Logger extends Module {
     //     });
     // }
 
-    loadInfo() {
-        super.loadInfo();
+    async loadInfo() {
+        await super.loadInfo();
         for(let each of this.info.events) {
             each.time = new Date(Date.parse(each.time));
         }
@@ -97,7 +97,7 @@ class Logger extends Module {
     //     //     eraseButton.disabled = true;
     //     //     this.info = {events: []};
     //     //     this.updateElements();
-    //     //     this.save();
+    //     //     await this.save();
     //     //     eraseButton.disabled = false;
     //     // }
     // }
@@ -109,7 +109,7 @@ class Logger extends Module {
     //     localStorage.setItem(`${this.config.moduleId}+Even`, JSON.stringify(this.info.events));
     // }
 
-    log(event) {
+    async log(event) {
         event.id = this.info.lastEventId;
         this.info.events.unshift(event);
         if(this.lastEventId == Number.MAX_SAFE_INTEGER) {
@@ -120,7 +120,7 @@ class Logger extends Module {
         if(this.info.events.length > 1000) {
             this.info.events = this.info.events.slice(0, 1000);
         }
-        this.save();
+        await this.save();
     }
 }
 

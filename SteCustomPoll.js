@@ -302,12 +302,12 @@ export default class SteCustomPoll extends Module {
                                 targetUser = getTargetUser(parts[1]);
                                 delete this.info.votes[targetUser];
                                 this.updateTally();
-                                this.save();
+                                await this.save();
                                 this.chatBot.client.say(event.channel, `Votes and token wallet data for the user @${targetUser} has been erased.`);
                             } else {
                                 this.info.votes = {};
                                 this.updateTally();
-                                this.save();
+                                await this.save();
                                 this.chatBot.client.say(event.channel, `Votes and token wallet data for all users has been erased.`);
                             }
                             this.updateTally();
@@ -396,27 +396,27 @@ export default class SteCustomPoll extends Module {
 
         this.info.isOpen = true;
         this.info.isVisible = true;
-        this.save();
+        await this.save();
     }
 
     close() {
         this.info.isOpen = false;
-        this.save();
+        await this.save();
     }
 
     reopen() {
         this.info.isOpen = true;
-        this.save();
+        await this.save();
     }
 
     show() {
         this.info.isVisible = true;
-        this.save();
+        await this.save();
     }
 
     hide() {
         this.info.isVisible = false;
-        this.save();
+        await this.save();
     }
 
     /**
@@ -439,14 +439,14 @@ export default class SteCustomPoll extends Module {
     initialiseVotesIfMissing(username) {
         if(typeof this.info.votes[username] === 'undefined') {
             this.initialiseVotesFor(username);
-            this.save();
+            await this.save();
         }
     }
 
     giveUserVotes(username, amount) {
         this.initialiseVotesIfMissing(username);
         this.info.votes[username].available = Math.max(0, this.info.votes[username].available + amount);
-        this.save();
+        await this.save();
 
         //todo: add chat message
     }
@@ -464,7 +464,7 @@ export default class SteCustomPoll extends Module {
         }
 
 
-        this.save();
+        await this.save();
 
         this.updateTally();
         //todo: add chat message
@@ -484,7 +484,7 @@ export default class SteCustomPoll extends Module {
         this.info.votes[username].spent[optionName] += numberOfVotes;
         this.info.votes[username].available -= numberOfVotes;
 
-        this.save();
+        await this.save();
 
         this.results.votes[optionName] += numberOfVotes;
         this.updateTally();
@@ -565,10 +565,10 @@ export default class SteCustomPoll extends Module {
         this.updateTally();
     }
 
-    finalizeBoxes() {
-        super.finalizeBoxes();
-        this.slSocket.finalizeBoxes();
-        this.chatBot.finalizeBoxes();
+    async finalizeBoxes() {
+        await super.finalizeBoxes();
+        await this.slSocket.finalizeBoxes();
+        await this.chatBot.finalizeBoxes();
     }
 
     start() {
