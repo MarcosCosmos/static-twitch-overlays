@@ -266,7 +266,7 @@ let doWork = async () => {
             async loadTheme() {
                 //only change theme if the new theme is real
                 let themeJsUrl = `./themes/${this.theme}/displays.js`;
-                if((await fetch(themeJsUrl).status == 200){
+                if((await fetch(themeJsUrl)).status == 200){
                     let newBoxes = (await import(themeJsUrl)).default;
                     //assign only those that exist;
                     for(const eachKey of Object.keys(newBoxes)) {
