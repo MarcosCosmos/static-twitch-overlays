@@ -238,7 +238,7 @@ function accumulationListener() {
                     case 'donation':
                     case 'bits':
                         {
-                        let lock = await self.requestDataLock();
+                        let lock = await this.requestDataLock();
                         this.add(amount);
                         await this.save(lock);
                         }
@@ -248,7 +248,7 @@ function accumulationListener() {
                     case 'host':
                     case 'raid':
                         {
-                        let lock = await self.requestDataLock();
+                        let lock = await this.requestDataLock();
                         await this.increment();
                         await this.save(lock);
                         }
@@ -268,7 +268,7 @@ function streamEventListener() {
     this.service.addListener(
         async event => {
             if(event.details.for == this.config.eventPlatform && event.details.type == this.config.eventType) {
-                let lock = await self.requestDataLock();
+                let lock = await this.requestDataLock();
                 switch(event.details.type) {
                     case 'superchat':
                         //superchats are measured in micros of a unit, so divide by 1000000 before continueing
@@ -325,7 +325,7 @@ function timerListener() {
                         amount /= 100
                     case 'donation':
                         {
-                        let lock = await self.requestDataLock();
+                        let lock = await this.requestDataLock();
                         this.add(amount*this.config.extensionAmount);
                         }
                         break;
@@ -334,7 +334,7 @@ function timerListener() {
                     case 'host':
                     case 'raid':
                         {
-                        let lock = await self.requestDataLock();
+                        let lock = await this.requestDataLock();
                         await this.add(this.config.extensionAmount);
                         this.save(lock);
                         }
