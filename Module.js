@@ -41,9 +41,10 @@ export default class Module {
             this.storage = localStorageWrapper;
         }
 
-        this.initPromise = this.loadInfo().then(() => {
+        this.dataPromise = Promise.resolve();
         
-        
+        this.withDataLock(async (lock) => {
+            await this.loadInfo(lock);
             this.componentLists = {};
 
             this.boxes = {};
@@ -64,7 +65,7 @@ export default class Module {
 
             //add a listener for external localStorage changes
             window.addEventListener('storage', async () => {
-                await this.loadInfo();
+                await this.withDataLock(this.loadInfo.bind(this));
             });
         });
     }
@@ -127,7 +128,7 @@ export default class Module {
      * Shouldn't be called in the constructor chain since it essentially shoe-horns lists of components into object-maps for later use
      */
     async finalizeBoxes() {
-        await this.initPromise.then(() => {this.generateBoxes();
+        await this.withDataLock((lock) => {this.generateBoxes();
             for(const each of ['display', 'info', 'settings', 'controls']) {
                 let eachComponents = this.componentLists[each];
                 let self=this;
@@ -160,7 +161,8 @@ export default class Module {
     //     return resolver;
     // }
 
-    async eraseData() {
+    async eraseData(lock) {
+        lock.check();
         let recursingAssign = (destination, source) => {
             for(const eachKey of Object.keys(source)) {
                 if(destination[eachKey] == null || (!(source[eachKey] instanceof Object) || source[eachKey] instanceof Array || source[eachKey] instanceof Date)) {
@@ -174,26 +176,16 @@ export default class Module {
         await this.save();
     }
 
-    // async loadInfo() {
-    //     this.withLock(async ()=>this.getItems(this.info));
-    // }
-    
-
-    // async save() {
-    //     this.withLock(()=>this._save());
-    // }
-
-    // async withLock(work) {
-    //     let release = await this.requestInfoLock();
-    //     await work();
-    //     release();
-    // }
-
-    async loadInfo() {
-        await this.getItems(this.info);
+    async loadInfo(lock) {
+        await this.getItems(lock, this.info);
     }
-    async save() {
-        await this.storeItems(this.info);
+
+
+
+    //note: you can only have the lock until one call to save; which always releases the lock.
+    async save(lock) {
+        await this.storeItems(lock, this.info);
+        lock.release();
     }
 
     /**
@@ -201,7 +193,8 @@ export default class Module {
      * @param Object destination
      * Note: this method can only safely deal with JSON-compatible data
      */
-    async getItems(destination) {
+    async getItems(lock, destination) {
+        lock.check();
         for(let eachName in destination) {
             let tmp = await this.storage.get(`${this.config.moduleId}${eachName}`); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
             if(tmp !== null) {
@@ -212,10 +205,11 @@ export default class Module {
 
     /**
      * 
-     * @param Object destination 
+     * @param Object destination
      * Note: this method can only safely deal with JSON-compatible data
      */
-    async storeItems(destination) {
+    async storeItems(lock, destination) {
+        lock.check();
         for(let eachName in destination) {
             await this.storage.set(`${this.config.moduleId}${eachName}`, JSON.stringify(destination[eachName])); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
         }
@@ -234,4 +228,30 @@ export default class Module {
     stop() {
     }
 
+    async requestDataLock() {
+        let result = { 
+            owned: true
+        };
+        result.check = () => {
+            if(!result.owned) {
+                throw new Error("Cannot release the lock, as this hold was already released.");
+            }
+        }; //extra fast-fail
+        let existingLock = this.dataPromise;
+        this.dataPromise = new Promise((resolve) => result.release = () => {
+            result.check();
+            result.owned = false;
+            resolve();
+        });
+        await existingLock;
+        return result;
+    }
+    
+    async withDataLock(work) {
+        let lock = await this.requestDataLock();
+        await work(lock);
+        if(lock.owned) {
+            lock.release();
+        }
+    }
 }

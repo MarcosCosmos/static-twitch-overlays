@@ -38,8 +38,10 @@ class StreamLabsSocket extends EventEmitter {
         this.socket.on('error', (err) => console.err(err));
 
         let handleOneEvent = async eventData => {
+            let lock = await this.requestDataLock();
             if(!this.info.eventsSeen.has(eventData.message._id)) { 
                 this.info.eventsSeen.add(eventData.message._id);
+                await this.save(lock);
                 for(const eachListener of this.listeners) {
                     try {
                         eachListener({
@@ -50,7 +52,6 @@ class StreamLabsSocket extends EventEmitter {
                         console.error(err);
                     }
                 }
-                await this.save();
             }
         };
 
@@ -59,7 +60,6 @@ class StreamLabsSocket extends EventEmitter {
             for(let each of eventData.message) {
                 await handleOneEvent({type: eventData.type, for: eventData.for, message: each});
             }
-            
         });
 
         await this.socket.open();

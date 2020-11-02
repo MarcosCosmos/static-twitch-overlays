@@ -86,6 +86,8 @@ class TiltifyScanner extends EventEmitter {
                         this.info.donoPaginationMark = new URLSearchParams(response.links.next).get('after');
                         firstPass = false;
                     }
+
+                    let lock = await self.requestDataLock();
                     for(const each of donations) {
                         if(!this.info.eventsSeen.has(each.id)) { 
                             this.info.eventsSeen.add(each.id);
@@ -99,9 +101,9 @@ class TiltifyScanner extends EventEmitter {
                                     console.error(err);
                                 }
                             }
-                            await this.save();
                         }
                     }
+                    await this.save(lock);
                 }
                 if(response.links.prev.length > 0) {
                     let tmp = new URLSearchParams(response.links.prev).get('before');

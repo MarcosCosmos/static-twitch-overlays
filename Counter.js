@@ -31,8 +31,8 @@ class Counter extends BasicDisplay {
                 </form>
             `,
             watch: {
-                'info.currentValue': function() {
-                    self.save();
+                'info.currentValue': async function() {
+                    self.save(await self.requestDataLock());
                 }
             }
             
@@ -46,10 +46,9 @@ class Counter extends BasicDisplay {
     //     this.withLock(()=>this._increment());
     // }
 
-    async increment() {
+    increment() {
         ++this.info.currentValue;
         ++this.info.totalValue;
-        await this.save(); //ironically, this probably achieves that tracability mentioned in veux?
     }
 
     /**
@@ -60,10 +59,9 @@ class Counter extends BasicDisplay {
     //     this.withLock(()=>this._add(amount));
     // }
 
-    async add(amount) {
+    add(amount) {
         this.info.currentValue += amount;
         this.info.totalValue += amount;
-        await this.save(); //ironically, this probably achieves that tracability mentioned in veux?
     }
 
     /**
@@ -74,10 +72,9 @@ class Counter extends BasicDisplay {
     //     this.withLock(()=>this._set(amount));
     // }
 
-    async set(amount) {
+    set(amount) {
         this.info.totalValue += this.info.currentValue-amount;
         this.info.currentValue = amount;
-        await this.save(); //ironically, this probably achieves that tracability mentioned in veux?
     }
 };
 

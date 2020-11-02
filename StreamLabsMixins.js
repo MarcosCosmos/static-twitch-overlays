@@ -237,13 +237,21 @@ function accumulationListener() {
                         amount /= 1000000;
                     case 'donation':
                     case 'bits':
-                        await this.add(amount);
+                        {
+                        let lock = await self.requestDataLock();
+                        this.add(amount);
+                        await this.save(lock);
+                        }
                         break;
                     case 'follow':
                     case 'subscription':
                     case 'host':
                     case 'raid':
+                        {
+                        let lock = await self.requestDataLock();
                         await this.increment();
+                        await this.save(lock);
+                        }
                         break;
                     default:
                         return;//ensure no effect is had by unrecognised events
@@ -260,6 +268,7 @@ function streamEventListener() {
     this.service.addListener(
         async event => {
             if(event.details.for == this.config.eventPlatform && event.details.type == this.config.eventType) {
+                let lock = await self.requestDataLock();
                 switch(event.details.type) {
                     case 'superchat':
                         //superchats are measured in micros of a unit, so divide by 1000000 before continueing
@@ -293,10 +302,11 @@ function streamEventListener() {
                         };
                         break;
                     default:
+                        lock.release();
                         return;//ensure no effect is had by unrecognised events
 
                 }
-                await this.save();
+                await this.save(lock);
             }
         }
     );
@@ -314,13 +324,20 @@ function timerListener() {
                     case 'bits':
                         amount /= 100
                     case 'donation':
-                        await this.add(amount*this.config.extensionAmount);
+                        {
+                        let lock = await self.requestDataLock();
+                        this.add(amount*this.config.extensionAmount);
+                        }
                         break;
                     case 'follow':
                     case 'subscription':
                     case 'host':
                     case 'raid':
+                        {
+                        let lock = await self.requestDataLock();
                         await this.add(this.config.extensionAmount);
+                        this.save(lock);
+                        }
                         break;
                     default:
                         return;//ensure no effect is had by unrecognised events

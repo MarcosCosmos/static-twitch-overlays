@@ -136,12 +136,13 @@ function accumulationListener() {
 function streamEventListener() {
     this.service.addListener(
         async event => {
+            let release = await this.requestDataLock();
             this.info.currentEvent = {
                 by: event.details.name,
                 detail: event.details.message.formattedAmount,
                 raw: event.details
             };
-            await this.save();
+            await this.save(lock);
         }
     );
 }
@@ -151,7 +152,9 @@ function timerListener() {
         async event => {
             switch(event.type) {
                 case 'donation':
-                    await this.add(event.details.amount*this.config.extensionAmount);
+                    let lock = await self.requestDataLock();
+                    this.add(event.details.amount*this.config.extensionAmount);
+                    await this.save(lock);
                     break;
             }
         }

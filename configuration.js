@@ -110,14 +110,14 @@ let doWork = async () => {
                 },
                 watch: {
                     widgetInfo: {
-                        handler () {
-                            eachWidget.save();
+                        async handler () {
+                            eachWidget.save(await eachWidget.requestDataLock());
                         },
                         deep: true
                     },
                     serviceInfo: {
-                        handler() {
-                            eachService.save();
+                        async handler() {
+                            eachService.save(await eachService.requestDataLock());
                         },
                         deep: true
                     },
@@ -129,6 +129,7 @@ let doWork = async () => {
                     updateIds() {
                         this.widgetConfig.moduleId = this.widgetId;
                         this.serviceConfig.moduleId = `${this.widgetId}_service`;
+    
                     },
                     created() {
                         this.updateIds();
@@ -233,6 +234,16 @@ let doWork = async () => {
                     serviceConfig: this.service.config
                 }, Set_toJSON))}`;
             },
+            settingsJSON() {
+                return `${JSON.stringify({
+                    moduleId: this.moduleId,
+                    theme: this.theme,
+                    widgetType: this.widgetType,
+                    serviceType: this.serviceType,
+                    widgetConfig: this.widget.config,
+                    serviceConfig: this.service.config
+                }, Set_toJSON)}`;
+            },
             displayBox() {
                 return (this.themeBoxes[this.widgetType].bind(this.widget))();
             },
@@ -303,6 +314,10 @@ let doWork = async () => {
                         <a class="urlText alert alert-light" :href="formUrl">
                             <pre>{{formUrl}}</pre>
                         </a>
+                        <h4>StreamElements 'fields'</h4>
+                        <span class="urlText alert alert-light">
+                            <pre>{{settingsJSON}}</pre>
+                        </span>
                     </div>
                 </template>
                 <template v-slot:displayBox>

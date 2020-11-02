@@ -36,9 +36,10 @@ class EventEmitter extends Module {
     }
 
     //use these overloads to deal with the set business
-    async loadInfo() {
+    async loadInfo(lock) {
+        lock.check();
         let tmp = {};
-        await this.getItems(tmp);
+        await this.getItems(lock, tmp);
         if(tmp.eventsSeen) {
             tmp.eventsSeen = new Set([...tmp.eventsSeen, ...this.info.eventsSeen]);
         } else if(this.info.eventsSeen instanceof Array) {
@@ -54,9 +55,10 @@ class EventEmitter extends Module {
      * @param Object destination 
      * Note: this method can only safely deal with JSON-compatible data
      */
-    storeItems(destination) {
+    async storeItems(lock, destination) {
+        lock.check();
         for(let eachName in destination) {
-            localStorage.setItem(`${this.config.moduleId}${eachName}`, JSON.stringify(destination[eachName], Set_toJSON)); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
+            await this.storage.set(`${this.config.moduleId}${eachName}`, JSON.stringify(destination[eachName], Set_toJSON)); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
         }
     }
     

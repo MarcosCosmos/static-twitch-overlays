@@ -68,7 +68,7 @@ function makeRegex() {
     return regex;
 }
 
-function processEventAccumulation(event, regex) {
+async function processEventAccumulation(event, regex) {
     if(regex.test(event.message)) {
         let match = event.message.match(regex);
         let amount = NaN;
@@ -87,18 +87,25 @@ function processEventAccumulation(event, regex) {
                 amount = parseFloat(payload);
             }
         }
+        let lock = await this.requestDataLock();
+        let result;
         if(increment) {
             this.increment();
-        } else {
-            if(!isNaN(amount) && isFinite(amount)) {
-                if (relative) {
-                    this.add(amount);
-                } else {
-                    this.set(amount);
-                }
+            result = `${this.config.displayTitle} is now: ${this.info.currentValue}`;
+            await this.save(lock); //save forcedly releases the lock, so it can only be used once each time the lock is grabbed.
+        } else if(!isNaN(amount) && isFinite(amount)) {
+            if (relative) {
+                this.add(amount);
+            } else {
+                this.set(amount);
             }
+            result = `${this.config.displayTitle} is now: ${this.info.currentValue}`;
+            await this.save(lock); //save forcedly releases the lock, so it can only be used once each time the lock is grabbed.
+        } else {
+            result = `${this.config.displayTitle} is now: ${this.info.currentValue}`;
+            lock.release();
         }
-        return `${this.config.displayTitle} is now: ${this.info.currentValue}`;
+        return result;
     }
     return false;
 }
@@ -135,6 +142,9 @@ async function processEventTimer(event, regex) {
                 }
             }
         }
+        
+        let lock = await this.requestDataLock();
+        let result;
         if(!isNaN(amount) && isFinite(amount)) {
             this.timeToNowIfNull();
             if (relative) {
@@ -142,10 +152,14 @@ async function processEventTimer(event, regex) {
             } else {
                 this.info.snapshotTime = new Date(Date.now());
                 this.setReferenceTime(amount, this.info.snapshotTime.valueOf());
-                await this.save();
             }
+            result = `${this.config.displayTitle} is now: ${this.getHours()}:${this.getMinutes()}:${this.getSeconds()} (${this.info.isPaused ? 'paused' : 'and counting'})`;
+            await this.save(lock);
+        } else {
+            result = `${this.config.displayTitle} is now: ${this.getHours()}:${this.getMinutes()}:${this.getSeconds()} (${this.info.isPaused ? 'paused' : 'and counting'})`;
+            lock.release();
         }
-        return `${this.config.displayTitle} is now: ${this.getHours()}:${this.getMinutes()}:${this.getSeconds()} (${this.info.isPaused ? 'paused' : 'and counting'})`;
+        return result;
     }
     return false;
 }
@@ -157,12 +171,14 @@ async function processEventStreamEvent(event, regex) {
         if(match != null) {
             payload = event.message.substr(match.index + match[0].length);
         }
+        
+        let lock = await this.requestDataLock();
         this.info.currentEvent = {
             by: event.tags.displayName,
             detail: payload,
             raw: event
         };
-        await this.save();
+        await this.save(lock);
         return `Message recieved! @${event.tags.displayName}`;
     }
     return false;

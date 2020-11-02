@@ -61,13 +61,16 @@ export default class BasicGoal extends Counter {
             `,
             watch: {
                 'info.totalValue': function() {
-                    self.save();
+                    self.save(this.requestDataLock());
                 },
                 'info.currentValue': async function(value) {
+                    let lock = await self.requestDataLock();
                     let oldTimesReached = this.info.goalsReached;
-                    self.checkGoalReached();
+                    lock = self.checkGoalReached();
                     if(value != this.info.currentValue || oldTimesReached != this.info.goalsReached) {
-                        self.save();
+                        self.save(lock);
+                    } else {
+                        lock.release();
                     }
                 }
             }
@@ -112,33 +115,32 @@ export default class BasicGoal extends Counter {
     /**
      * Adds 1 the goal progress and updates data and elements accordingly
      */
-    async increment() {
+    increment() {
         ++this.info.currentValue;
         ++this.info.totalValue;
         this.checkGoalReached();
-        await this.save(); //ironically, this probably achieves that tracability mentioned in veux?
     }
 
     /**
      * Adds the given amount to the goal progress and updates data and elements accordingly
      * @param float amount 
      */
-    async add(amount) {
+    add(amount) {
+        // let release = await this.requestDataLock();
         this.info.currentValue += amount;
         this.info.totalValue += amount;
-        this.checkGoalReached();
-        await this.save(); //ironically, this probably achieves that tracability mentioned in veux?
+        this.checkGoalReached(resolve);
     }
 
     /**
      * Sets the goal progress to the given amount and updates data and elements accordingly
      * @param float amount 
      */
-    async set(amount) {
+    set(amount) {
+        // let release = await this.requestDataLock();
         this.info.totalValue += this.info.currentValue-amount;
         this.info.currentValue = amount;
         this.checkGoalReached();
-        await this.save();
     }
 
     checkGoalReached() {
@@ -172,9 +174,9 @@ export default class BasicGoal extends Counter {
         }
     }
 
-    eraseData() {
-        super.eraseData();
-        this.logger.eraseData();
+    async eraseData(lock) {
+        await super.eraseData(lock);
+        await this.logger.eraseData(this.logger.requestDataLock());
     }
 
 }
