@@ -281,7 +281,7 @@ let doWork = async () => {
                     }
                     let newStyleSheet = document.createElement('link');
                     newStyleSheet.rel = 'stylesheet';
-                    newStyleSheet.href = `./themes/${this.theme}/style.css`;
+                    newStyleSheet.href = `https://marcoscosmos.gitlab.io/static-twitch-overlays/themes/${this.theme}/style.css`;
                     newStyleSheet.id = 'themeStyle';
                     
                     document.head.appendChild(newStyleSheet);
