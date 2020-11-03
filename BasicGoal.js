@@ -66,7 +66,7 @@ export default class BasicGoal extends Counter {
                 'info.currentValue': async function(value) {
                     let lock = await self.requestDataLock();
                     let oldTimesReached = this.info.goalsReached;
-                    lock = self.checkGoalReached();
+                    self.checkGoalReached();
                     if(value != this.info.currentValue || oldTimesReached != this.info.goalsReached) {
                         self.save(lock);
                     } else {
