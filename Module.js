@@ -259,7 +259,7 @@ class LocalStorageModule extends ModuleBase {
         lock.check();
         for(let eachName in destination) {
             let tmp = await localStorage.getItem(`${this.config.moduleId}${eachName}`); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
-            if(typeof foo !== 'undefined' && tmp !== null) {
+            if(typeof tmp !== 'undefined' && tmp !== null) {
                 destination[eachName] = JSON.parse(tmp);
             }
         }
@@ -289,7 +289,7 @@ class SEStorageModule extends ModuleBase {
         let tmp = await SE_API.store.get(`${this.config.moduleId}.info`) || null;
         if(tmp != null) {
             for(let eachName in destination) {
-                if(typeof foo !== 'undefined' && tmp[eachName] !== null) {
+                if(typeof tmp !== 'undefined' && tmp[eachName] !== null) {
                     destination[eachName] = JSON.parse(tmp[eachName]);
                 }
             }
