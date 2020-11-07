@@ -336,7 +336,7 @@ export default class Timer extends BasicDisplay {
             this.updateInterval = setInterval(async () => {
                 let lock = await this.requestDataLock();
                 this.updateSnapshot();
-                this.checkFinished();
+                await this.checkFinished();
                 await this.save(lock);
             }, 1000);
         }
@@ -356,10 +356,10 @@ export default class Timer extends BasicDisplay {
     /**
      * Only timers counters down can 'finish', and the timer must become non-zero again to unset it
      */
-    checkFinished() {
+    async checkFinished() {
         if(!this.info.finishSeen) {
             if(this.currentGapMs <= 0) {
-                this.logger.log({
+                await this.logger.log({
                     name: `Timer (${this.config.displayTitle}) Finished!`,
                     time: new Date(this.info.snapshotTime.valueOf()+this.currentGapMs)
                 });

@@ -66,7 +66,7 @@ export default class BasicGoal extends Counter {
                 'info.currentValue': async function(value) {
                     let lock = await self.requestDataLock();
                     let oldTimesReached = this.info.goalsReached;
-                    self.checkGoalReached();
+                    await self.checkGoalReached();
                     if(value != this.info.currentValue || oldTimesReached != this.info.goalsReached) {
                         self.save(lock);
                     } else {
@@ -118,7 +118,7 @@ export default class BasicGoal extends Counter {
     increment() {
         ++this.info.currentValue;
         ++this.info.totalValue;
-        this.checkGoalReached();
+        await this.checkGoalReached();
     }
 
     /**
@@ -129,7 +129,7 @@ export default class BasicGoal extends Counter {
         // let release = await this.requestDataLock();
         this.info.currentValue += amount;
         this.info.totalValue += amount;
-        this.checkGoalReached();
+        await this.checkGoalReached();
     }
 
     /**
@@ -140,10 +140,10 @@ export default class BasicGoal extends Counter {
         // let release = await this.requestDataLock();
         this.info.totalValue += this.info.currentValue-amount;
         this.info.currentValue = amount;
-        this.checkGoalReached();
+        await this.checkGoalReached();
     }
 
-    checkGoalReached() {
+    async checkGoalReached() {
         let nextValue;
         let newTimesReached;
         let totalTimesReached = this.info.goalsReached;
@@ -166,7 +166,7 @@ export default class BasicGoal extends Counter {
         if(newTimesReached != 0) {
             //log events and update the stored values accordingly.
             for(let i=0; i <newTimesReached; ++i) {
-                this.logger.log({
+                await this.logger.log({
                     name: `Goal (${this.config.displayTitle}) Reached!`,
                     time: new Date(Date.now())
                 });
