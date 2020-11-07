@@ -46,8 +46,8 @@ function generateBoxes(processor) {
             </form>
         `,
         methods: {
-            sampleCommand(event) {
-                let response = processor(
+            async sampleCommand(event) {
+                let response = await processor(
                     {
                         message: this.demoCommand,
                         tags: {
@@ -119,11 +119,10 @@ async function processEventTimer(event, regex) {
         if(match != null) {
             let payload = event.message.substr(match.index + match[0].length).trim();
             if(payload == 'pause' || payload == 'stop') {
-                this.pause();
+                await this.pause();
             } else if(payload == 'unpause' || payload == 'start') {
-                this.unpause();
-            }
-            if(payload.length > 0) {
+                await this.unpause();
+            } else if(payload.length > 0) {
                 if (payload[0] == '=') {
                     relative = false;
                     payload = payload.substr(1).trim();

@@ -7,15 +7,15 @@ let defaultConfig;
     };
 }
 
-let localStorageWrapper = {
-    get: (k) => localStorage.getItem(k),
-    set: (k,v) => localStorage.setItem(k,v)
-}
+// let localStorageWrapper = {
+//     get: (k) => localStorage.getItem(k),
+//     set: (k,v) => localStorage.setItem(k,v)
+// }
 
 /*
     This defines the base/common contents of an overlay module, which gets interacted with by the core
 */
-export default class Module {
+class ModuleBase {
     static mixin(initial, source) {
         let result = JSON.parse(JSON.stringify(initial));
         let recursingAssign = (destination, source) => {
@@ -34,13 +34,6 @@ export default class Module {
     constructor(config={}) {
         this.config = Module.mixin(defaultConfig, config);
         this.info = Module.mixin({}, this.config.defaultData);
-
-        if(typeof SE_API !== 'undefined' && typeof SE_API.store !== 'undefined') {
-            this.storage = SE_API.store;
-        } else {
-            this.storage = localStorageWrapper;
-        }
-
         this.dataPromise = Promise.resolve();
         
         this.withDataLock(async (lock) => {
@@ -118,7 +111,7 @@ export default class Module {
             `,
             methods: {
                 async eraseData() {
-                    self.eraseData();
+                    self.eraseData(await self.requestDataLock());
                 }
             }
         });
@@ -173,7 +166,7 @@ export default class Module {
             }
         };
         recursingAssign(this.info, this.config.defaultData);
-        await this.save();
+        await this.save(lock);
     }
 
     async loadInfo(lock) {
@@ -188,32 +181,32 @@ export default class Module {
         lock.release();
     }
 
-    /**
-     * replaces existing values with those in local storage, where it exists
-     * @param Object destination
-     * Note: this method can only safely deal with JSON-compatible data
-     */
-    async getItems(lock, destination) {
-        lock.check();
-        for(let eachName in destination) {
-            let tmp = await this.storage.get(`${this.config.moduleId}${eachName}`); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
-            if(tmp !== null) {
-                destination[eachName] = JSON.parse(tmp);
-            }
-        }
-    }
+    // /**
+    //  * replaces existing values with those in local storage, where it exists
+    //  * @param Object destination
+    //  * Note: this method can only safely deal with JSON-compatible data
+    //  */
+    // async getItems(lock, destination) {
+    //     lock.check();
+    //     for(let eachName in destination) {
+    //         let tmp = await this.storage.get(`${this.config.moduleId}${eachName}`); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
+    //         if(tmp !== null) {
+    //             destination[eachName] = JSON.parse(tmp);
+    //         }
+    //     }
+    // }
 
-    /**
-     * 
-     * @param Object destination
-     * Note: this method can only safely deal with JSON-compatible data
-     */
-    async storeItems(lock, destination) {
-        lock.check();
-        for(let eachName in destination) {
-            await this.storage.set(`${this.config.moduleId}${eachName}`, JSON.stringify(destination[eachName])); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
-        }
-    }
+    // /**
+    //  * 
+    //  * @param Object destination
+    //  * Note: this method can only safely deal with JSON-compatible data
+    //  */
+    // async storeItems(lock, destination) {
+    //     lock.check();
+    //     for(let eachName in destination) {
+    //         await this.storage.set(`${this.config.moduleId}${eachName}`, JSON.stringify(destination[eachName])); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
+    //     }
+    // }
 
     /**
      * mainly used for services, but also for timers, etc
@@ -255,3 +248,74 @@ export default class Module {
         }
     }
 }
+
+class LocalStorageModule extends ModuleBase {
+    /**
+     * replaces existing values with those in local storage, where it exists
+     * @param Object destination
+     * Note: this method can only safely deal with JSON-compatible data
+     */
+    async getItems(lock, destination) {
+        lock.check();
+        for(let eachName in destination) {
+            let tmp = await localStorage.getItem(`${this.config.moduleId}${eachName}`); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
+            if(tmp !== null) {
+                destination[eachName] = JSON.parse(tmp);
+            }
+        }
+    }
+
+    /**
+     * 
+     * @param Object destination
+     * Note: this method can only safely deal with JSON-compatible data
+     */
+    async storeItems(lock, destination) {
+        lock.check();
+        for(let eachName in destination) {
+            await localStorage.setItem(`${this.config.moduleId}${eachName}`, JSON.stringify(destination[eachName])); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
+        }
+    }
+}
+
+class SEStorageModule extends ModuleBase {
+    /**
+     * replaces existing values with those in local storage, where it exists
+     * @param Object destination
+     * Note: this method can only safely deal with JSON-compatible data
+     */
+    async getItems(lock, destination) {
+        lock.check();
+        let tmp = await SE_API.store.get(`${this.config.moduleId}.info`);
+        for(let eachName in destination) {
+            if(tmp[eachName] !== null) {
+                destination[eachName] = JSON.parse(tmp[eachName]);
+            }
+        }
+    }
+
+    /**
+     * 
+     * @param Object destination
+     * Note: this method can only safely deal with JSON-compatible data
+     */
+    async storeItems(lock, destination) {
+        lock.check();
+        let tmp = {};
+        for(let eachName in destination) {
+            tmp[eachName] = JSON.stringify(destination[eachName]);
+            await this.storage.set(`${this.config.moduleId}.info`, tmp);
+        }
+    }
+}
+
+let Module;
+
+///StreamElements storage support.
+if(typeof SE_API !== 'undefined' && typeof SE_API.store !== 'undefined') {
+    Module = SEStorageModule;
+} else {
+    Module = LocalStorageModule;
+}
+
+export default Module;

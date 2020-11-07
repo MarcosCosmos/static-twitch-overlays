@@ -300,12 +300,14 @@ export default class Timer extends BasicDisplay {
     }
 
     async pause() {
+        this.stop();
         let lock = await this.requestDataLock();
         if(!this.info.isPaused) {
             this.updateSnapshot();
-            this.stop();
             this.info.isPaused = true;
             await this.save(lock);
+        } else {
+            lock.release();
         }
     }
 
@@ -315,8 +317,10 @@ export default class Timer extends BasicDisplay {
             this.timeToNowIfNull();
             this.setReferenceTime(this.currentGapMs, Date.now());
             this.info.isPaused = false;
-            this.start();
             await this.save(lock);
+            this.start();
+        } else {
+            lock.release();
         }
     }
 
@@ -330,9 +334,11 @@ export default class Timer extends BasicDisplay {
     start() {
         if(!this.info.isPaused && this.updateInterval == null) {
             this.updateInterval = setInterval(async () => {
+                let lock = await this.requestDataLock();
                 this.updateSnapshot();
                 this.checkFinished();
-            })
+                await this.save(lock);
+            }, 1000);
         }
     }
 

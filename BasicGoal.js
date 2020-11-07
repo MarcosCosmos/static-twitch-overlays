@@ -60,8 +60,8 @@ export default class BasicGoal extends Counter {
                 </form>
             `,
             watch: {
-                'info.totalValue': function() {
-                    self.save(this.requestDataLock());
+                'info.totalValue': async function() {
+                    self.save(await self.requestDataLock());
                 },
                 'info.currentValue': async function(value) {
                     let lock = await self.requestDataLock();
@@ -129,7 +129,7 @@ export default class BasicGoal extends Counter {
         // let release = await this.requestDataLock();
         this.info.currentValue += amount;
         this.info.totalValue += amount;
-        this.checkGoalReached(resolve);
+        this.checkGoalReached();
     }
 
     /**
@@ -176,7 +176,7 @@ export default class BasicGoal extends Counter {
 
     async eraseData(lock) {
         await super.eraseData(lock);
-        await this.logger.eraseData(this.logger.requestDataLock());
+        await this.logger.eraseData(await this.logger.requestDataLock());
     }
 
 }

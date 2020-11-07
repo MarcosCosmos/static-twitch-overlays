@@ -37,7 +37,6 @@ class EventEmitter extends Module {
 
     //use these overloads to deal with the set business
     async loadInfo(lock) {
-        lock.check();
         let tmp = {};
         await this.getItems(lock, tmp);
         if(tmp.eventsSeen) {
@@ -47,18 +46,6 @@ class EventEmitter extends Module {
         }
         for(let each of Object.keys(tmp)) {
             this.info[each] = tmp[each];
-        }
-    }
-
-    /**
-     * 
-     * @param Object destination 
-     * Note: this method can only safely deal with JSON-compatible data
-     */
-    async storeItems(lock, destination) {
-        lock.check();
-        for(let eachName in destination) {
-            await this.storage.set(`${this.config.moduleId}${eachName}`, JSON.stringify(destination[eachName], Set_toJSON)); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
         }
     }
     
