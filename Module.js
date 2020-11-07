@@ -286,7 +286,7 @@ class SEStorageModule extends ModuleBase {
      */
     async getItems(lock, destination) {
         lock.check();
-        let tmp = await SE_API.store.get(`${this.config.moduleId}.info`);
+        let tmp = await SE_API.store.get(`${this.config.moduleId}.info`) || {};
         for(let eachName in destination) {
             if(tmp[eachName] !== null) {
                 destination[eachName] = JSON.parse(tmp[eachName]);
