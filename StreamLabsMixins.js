@@ -239,7 +239,7 @@ function accumulationListener() {
                     case 'bits':
                         {
                         let lock = await this.requestDataLock();
-                        this.add(amount);
+                        await this.add(amount);
                         await this.save(lock);
                         }
                         break;
@@ -326,7 +326,7 @@ function timerListener() {
                     case 'donation':
                         {
                         let lock = await this.requestDataLock();
-                        this.add(amount*this.config.extensionAmount);
+                        await this.add(amount*this.config.extensionAmount);
                         }
                         break;
                     case 'follow':

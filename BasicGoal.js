@@ -115,9 +115,8 @@ export default class BasicGoal extends Counter {
     /**
      * Adds 1 the goal progress and updates data and elements accordingly
      */
-    increment() {
-        ++this.info.currentValue;
-        ++this.info.totalValue;
+    async increment() {
+        super.increment();
         await this.checkGoalReached();
     }
 
@@ -125,10 +124,8 @@ export default class BasicGoal extends Counter {
      * Adds the given amount to the goal progress and updates data and elements accordingly
      * @param float amount 
      */
-    add(amount) {
-        // let release = await this.requestDataLock();
-        this.info.currentValue += amount;
-        this.info.totalValue += amount;
+    async add(amount) {
+        super.add(amount);
         await this.checkGoalReached();
     }
 
@@ -136,10 +133,8 @@ export default class BasicGoal extends Counter {
      * Sets the goal progress to the given amount and updates data and elements accordingly
      * @param float amount 
      */
-    set(amount) {
-        // let release = await this.requestDataLock();
-        this.info.totalValue += this.info.currentValue-amount;
-        this.info.currentValue = amount;
+    async set(amount) {
+        super.set(amount);
         await this.checkGoalReached();
     }
 

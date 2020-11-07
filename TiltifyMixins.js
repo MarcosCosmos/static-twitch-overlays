@@ -153,7 +153,7 @@ function timerListener() {
             switch(event.type) {
                 case 'donation':
                     let lock = await self.requestDataLock();
-                    this.add(event.details.amount*this.config.extensionAmount);
+                    await this.add(event.details.amount*this.config.extensionAmount);
                     await this.save(lock);
                     break;
             }

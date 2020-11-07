@@ -90,14 +90,14 @@ async function processEventAccumulation(event, regex) {
         let lock = await this.requestDataLock();
         let result;
         if(increment) {
-            this.increment();
+            await this.increment();
             result = `${this.config.displayTitle} is now: ${this.info.currentValue}`;
             await this.save(lock); //save forcedly releases the lock, so it can only be used once each time the lock is grabbed.
         } else if(!isNaN(amount) && isFinite(amount)) {
             if (relative) {
-                this.add(amount);
+                await this.add(amount);
             } else {
-                this.set(amount);
+                await this.set(amount);
             }
             result = `${this.config.displayTitle} is now: ${this.info.currentValue}`;
             await this.save(lock); //save forcedly releases the lock, so it can only be used once each time the lock is grabbed.
@@ -147,7 +147,7 @@ async function processEventTimer(event, regex) {
         if(!isNaN(amount) && isFinite(amount)) {
             this.timeToNowIfNull();
             if (relative) {
-                this.add(amount);
+                await this.add(amount);
             } else {
                 this.info.snapshotTime = new Date(Date.now());
                 this.setReferenceTime(amount, this.info.snapshotTime.valueOf());
