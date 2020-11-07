@@ -306,7 +306,7 @@ class SEStorageModule extends ModuleBase {
         let tmp = {};
         for(let eachName in destination) {
             tmp[eachName] = JSON.stringify(destination[eachName]);
-            await this.storage.set(`${this.config.moduleId}.info`, tmp);
+            await SE_API.store.set(`${this.config.moduleId}.info`, tmp);
         }
     }
 }
