@@ -305,7 +305,7 @@ class SEStorageModule extends ModuleBase {
         lock.check();
         let tmp = {};
         for(let eachName in destination) {
-            tmp[eachName] = JSON.stringify(destination[eachName]);
+            tmp[eachName] = typeof destination[eachName] === 'number' || typeof destination[eachName] === 'string' ? destination[eachName] : JSON.stringify(destination[eachName]);
             await SE_API.store.set(`${this.config.moduleId}.info`, tmp);
         }
     }
