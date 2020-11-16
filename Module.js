@@ -303,10 +303,11 @@ class SEStorageModule extends ModuleBase {
      */
     async storeItems(lock, destination) {
         lock.check();
-        let tmp = {};
+        let payload = {};
         for(let eachName in destination) {
-            tmp[eachName] = typeof destination[eachName] === 'number' || typeof destination[eachName] === 'string' ? destination[eachName] : JSON.stringify(destination[eachName]);
-            await SE_API.store.set(`${this.config.moduleId}.info`, tmp);
+            let eachTmp = destination[eachName];
+            payload[eachName] = typeof eachTmp === 'number' || typeof eachTmp === 'boolean' || typeof eachTmp === 'string' ? eachTmp : JSON.stringify(eachTmp);
+            await SE_API.store.set(`${this.config.moduleId}.info`, payload);
         }
     }
 }

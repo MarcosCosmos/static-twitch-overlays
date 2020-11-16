@@ -5,7 +5,8 @@
 <script type="module">
 import initialise from 'https://marcoscosmos.gitlab.io/static-twitch-overlays/embed.js';
 window.addEventListener('onWidgetLoad', function (obj) {
-    let config = fields || {};
+    for(let each of document.getElementsByClassName('iframe-blocker')) {each.remove();}
+    let config = {};
     initialise(config);
 });
 </script>
