@@ -56,10 +56,10 @@ class ModuleBase {
                 return coreData;
             }
 
-            //add a listener for external localStorage changes
-            window.addEventListener('storage', async () => {
-                await this.withDataLock(this.loadInfo.bind(this));
-            });
+            // //add a listener for external localStorage changes
+            // window.addEventListener('storage', async () => {
+            //     await this.withDataLock(this.loadInfo.bind(this));
+            // });
         });
     }
     
@@ -289,7 +289,7 @@ class SEStorageModule extends ModuleBase {
         let tmp = await SE_API.store.get(`${this.config.moduleId}.info`) || null;
         if(tmp != null) {
             for(let eachName in destination) {
-                if(typeof tmp !== 'undefined' && tmp[eachName] !== null) {
+                if(typeof tmp[eachName] !== 'undefined' && tmp[eachName] !== null) {
                     destination[eachName] = JSON.parse(tmp[eachName]);
                 }
             }
