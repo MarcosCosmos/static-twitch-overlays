@@ -237,6 +237,13 @@ class ModuleBase {
             resolve();
         });
         await existingLock;
+        setTimeout(() => {
+            if(result.owned) {
+                throw "panic, took too long to resolve!";
+            } else {
+                console.log("ok cool");
+            }
+        }, 2000);
         return result;
     }
     

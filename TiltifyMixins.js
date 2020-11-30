@@ -136,7 +136,7 @@ function accumulationListener() {
 function streamEventListener() {
     this.service.addListener(
         async event => {
-            let release = await this.requestDataLock();
+            let lock = await this.requestDataLock();
             this.info.currentEvent = {
                 by: event.details.name,
                 detail: event.details.message.formattedAmount,

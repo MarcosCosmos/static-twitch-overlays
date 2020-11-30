@@ -229,7 +229,14 @@ function generateTimerBoxes() {
 function accumulationListener() {
     this.service.addListener(
         async event => {
-            if(event.details.for == this.config.eventPlatform && event.details.type == this.config.eventType) {
+            //patch to accept resubs as subs
+            let isCorrectType;
+            if(event.details.type == 'resub' || event.details.type == 'subscription') {
+                isCorrectType = this.config.eventType == 'resub' || this.config.eventType == 'subscription';
+            } else {
+                isCorrectType = event.details.type == this.config.type;
+            }
+            if(event.details.for == this.config.eventPlatform && isCorrectType) {
                 let amount = event.details.message.amount;
                 switch(event.details.type) {
                     case 'superchat':
@@ -254,6 +261,7 @@ function accumulationListener() {
                         }
                         break;
                     default:
+                        lock.release();
                         return;//ensure no effect is had by unrecognised events
 
                 }
@@ -267,7 +275,14 @@ function accumulationListener() {
 function streamEventListener() {
     this.service.addListener(
         async event => {
-            if(event.details.for == this.config.eventPlatform && event.details.type == this.config.eventType) {
+            //patch to accept resubs as subs
+            let isCorrectType;
+            if(event.details.type == 'resub' || event.details.type == 'subscription') {
+                isCorrectType = this.config.eventType == 'resub' || this.config.eventType == 'subscription';
+            } else {
+                isCorrectType = event.details.type == this.config.type;
+            }
+            if(event.details.for == this.config.eventPlatform && isCorrectType) {
                 let lock = await this.requestDataLock();
                 switch(event.details.type) {
                     case 'superchat':
@@ -315,7 +330,14 @@ function streamEventListener() {
 function timerListener() {
     this.service.addListener(
         async event => {
-            if(event.details.for == this.config.eventPlatform && event.details.type == this.config.eventType) {
+            //patch to accept resubs as subs
+            let isCorrectType;
+            if(event.details.type == 'resub' || event.details.type == 'subscription') {
+                isCorrectType = this.config.eventType == 'resub' || this.config.eventType == 'subscription';
+            } else {
+                isCorrectType = event.details.type == this.config.type;
+            }
+            if(event.details.for == this.config.eventPlatform && isCorrectType) {
                 let amount = event.details.message.amount;
                 switch(event.details.type) {
                     case 'superchat':
@@ -327,10 +349,12 @@ function timerListener() {
                         {
                         let lock = await this.requestDataLock();
                         await this.add(amount*this.config.extensionAmount);
+                        this.save(lock);
                         }
                         break;
                     case 'follow':
                     case 'subscription':
+                    case 'resub':
                     case 'host':
                     case 'raid':
                         {
@@ -340,6 +364,7 @@ function timerListener() {
                         }
                         break;
                     default:
+                        lock.release();
                         return;//ensure no effect is had by unrecognised events
 
                 }
