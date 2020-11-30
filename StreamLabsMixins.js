@@ -252,6 +252,7 @@ function accumulationListener() {
                         break;
                     case 'follow':
                     case 'subscription':
+                    case 'resub':
                     case 'host':
                     case 'raid':
                         {
@@ -261,8 +262,7 @@ function accumulationListener() {
                         }
                         break;
                     default:
-                        lock.release();
-                        return;//ensure no effect is had by unrecognised events
+                        return; //lock wasn't grabbed
 
                 }
 
@@ -309,6 +309,7 @@ function streamEventListener() {
                         break;
                     case 'follow':
                     case 'subscription':
+                    case 'resub':
                     case 'host':
                     case 'raid':
                         this.info.currentEvent = {
@@ -317,8 +318,7 @@ function streamEventListener() {
                         };
                         break;
                     default:
-                        lock.release();
-                        return;//ensure no effect is had by unrecognised events
+                        return;
 
                 }
                 await this.save(lock);
@@ -364,8 +364,7 @@ function timerListener() {
                         }
                         break;
                     default:
-                        lock.release();
-                        return;//ensure no effect is had by unrecognised events
+                        return; //lock wasn't grabbed
 
                 }
             }
