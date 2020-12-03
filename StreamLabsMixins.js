@@ -234,7 +234,7 @@ function accumulationListener() {
             if(event.details.type == 'resub' || event.details.type == 'subscription') {
                 isCorrectType = this.config.eventType == 'resub' || this.config.eventType == 'subscription';
             } else {
-                isCorrectType = event.details.type == this.config.type;
+                isCorrectType = event.details.eventType == this.config.type;
             }
             if(event.details.for == this.config.eventPlatform && isCorrectType) {
                 let amount = event.details.message.amount;
@@ -280,7 +280,7 @@ function streamEventListener() {
             if(event.details.type == 'resub' || event.details.type == 'subscription') {
                 isCorrectType = this.config.eventType == 'resub' || this.config.eventType == 'subscription';
             } else {
-                isCorrectType = event.details.type == this.config.type;
+                isCorrectType = event.details.eventType == this.config.type;
             }
             if(event.details.for == this.config.eventPlatform && isCorrectType) {
                 let lock = await this.requestDataLock();
