@@ -9,7 +9,7 @@ function Set_toJSON(key, value) {
 
 const defaultConfig = {
     defaultData: {
-        eventsSeen: []
+        // eventsSeen: []
     }
 };
 
@@ -35,19 +35,19 @@ class EventEmitter extends Module {
         this.listeners.remove(listener);
     }
 
-    //use these overloads to deal with the set business
-    async loadInfo(lock) {
-        let tmp = {};
-        await this.getItems(lock, tmp);
-        if(tmp.eventsSeen) {
-            tmp.eventsSeen = new Set([...tmp.eventsSeen, ...this.info.eventsSeen]);
-        } else if(this.info.eventsSeen instanceof Array) {
-            this.info.eventsSeen = new Set(this.info.eventsSeen);
-        }
-        for(let each of Object.keys(tmp)) {
-            this.info[each] = tmp[each];
-        }
-    }
+    // //use these overloads to deal with the set business
+    // async loadInfo(lock) {
+    //     let tmp = {};
+    //     await this.getItems(lock, tmp);
+    //     if(tmp.eventsSeen) {
+    //         tmp.eventsSeen = new Set([...tmp.eventsSeen, ...this.info.eventsSeen]);
+    //     } else if(this.info.eventsSeen instanceof Array) {
+    //         this.info.eventsSeen = new Set(this.info.eventsSeen);
+    //     }
+    //     for(let each of Object.keys(tmp)) {
+    //         this.info[each] = tmp[each];
+    //     }
+    // }
     
     // async requestInfoLock() {
     //     let ownResolver;
