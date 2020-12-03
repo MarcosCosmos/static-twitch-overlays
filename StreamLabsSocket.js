@@ -67,8 +67,12 @@ class StreamLabsSocket extends EventEmitter {
 
         //Perform Action on event
         this.socket.on('event', async (eventData) => {
-            for(let each of eventData.message) {
-                await handleOneEvent({type: eventData.type, for: eventData.for, message: each});
+            try {
+                for(let each of eventData.message) {
+                    await handleOneEvent({type: eventData.type, for: eventData.for, message: each});
+                }
+            } catch(e) {
+                console.error(e);
             }
         });
 
