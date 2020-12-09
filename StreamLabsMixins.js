@@ -229,13 +229,13 @@ function generateTimerBoxes() {
 function accumulationListener() {
     this.service.addListener(
         async event => {
-            //patch to accept resubs as subs
             let isCorrectType;
-            if(event.details.type == 'resub' || event.details.type == 'subscription') {
-                isCorrectType = this.config.eventType == 'resub' || this.config.eventType == 'subscription';
-            } else {
-                isCorrectType = event.details.eventType == this.config.type;
-            }
+            // if(event.details.type == 'resub' || event.details.type == 'subscription') {
+            //     isCorrectType = this.config.eventType == 'resub' || this.config.eventType == 'subscription';
+            // } else {
+            //     isCorrectType = event.details.eventType == this.config.type;
+            // }
+            isCorrectType = event.details.eventType == this.config.type;
             if(event.details.for == this.config.eventPlatform && isCorrectType) {
                 let amount = event.details.message.amount;
                 switch(event.details.type) {
@@ -252,7 +252,6 @@ function accumulationListener() {
                         break;
                     case 'follow':
                     case 'subscription':
-                    case 'resub':
                     case 'host':
                     case 'raid':
                         {
@@ -275,13 +274,13 @@ function accumulationListener() {
 function streamEventListener() {
     this.service.addListener(
         async event => {
-            //patch to accept resubs as subs
             let isCorrectType;
-            if(event.details.type == 'resub' || event.details.type == 'subscription') {
-                isCorrectType = this.config.eventType == 'resub' || this.config.eventType == 'subscription';
-            } else {
-                isCorrectType = event.details.eventType == this.config.type;
-            }
+            // if(event.details.type == 'resub' || event.details.type == 'subscription') {
+            //     isCorrectType = this.config.eventType == 'resub' || this.config.eventType == 'subscription';
+            // } else {
+            //     isCorrectType = event.details.eventType == this.config.type;
+            // }
+            isCorrectType = event.details.eventType == this.config.type;
             if(event.details.for == this.config.eventPlatform && isCorrectType) {
                 let lock = await this.requestDataLock();
                 switch(event.details.type) {
@@ -309,7 +308,7 @@ function streamEventListener() {
                         break;
                     case 'follow':
                     case 'subscription':
-                    case 'resub':
+                    // case 'resub':
                     case 'host':
                     case 'raid':
                         this.info.currentEvent = {
@@ -330,13 +329,13 @@ function streamEventListener() {
 function timerListener() {
     this.service.addListener(
         async event => {
-            //patch to accept resubs as subs
             let isCorrectType;
-            if(event.details.type == 'resub' || event.details.type == 'subscription') {
-                isCorrectType = this.config.eventType == 'resub' || this.config.eventType == 'subscription';
-            } else {
-                isCorrectType = event.details.eventType == this.config.type;
-            }
+            // if(event.details.type == 'resub' || event.details.type == 'subscription') {
+            //     isCorrectType = this.config.eventType == 'resub' || this.config.eventType == 'subscription';
+            // } else {
+            //     isCorrectType = event.details.eventType == this.config.type;
+            // }
+            isCorrectType = event.details.eventType == this.config.type;
             if(event.details.for == this.config.eventPlatform && isCorrectType) {
                 let amount = event.details.message.amount;
                 switch(event.details.type) {
@@ -354,7 +353,7 @@ function timerListener() {
                         break;
                     case 'follow':
                     case 'subscription':
-                    case 'resub':
+                    // case 'resub':
                     case 'host':
                     case 'raid':
                         {
