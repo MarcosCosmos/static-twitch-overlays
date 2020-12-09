@@ -230,7 +230,7 @@ function accumulationListener() {
     this.service.addListener(
         async event => {
             let isCorrectType;
-            isCorrectType = event.details.eventType === this.config.eventType;
+            isCorrectType = event.details.type === this.config.eventType;
             if(event.details.for === this.config.eventPlatform && isCorrectType) {
                 let amount = event.details.message.amount;
                 switch(event.details.type) {
@@ -270,7 +270,7 @@ function streamEventListener() {
     this.service.addListener(
         async event => {
             let isCorrectType;
-            isCorrectType = event.details.eventType === this.config.eventType;
+            isCorrectType = event.details.type === this.config.eventType;
             if(event.details.for === this.config.eventPlatform && isCorrectType) {
                 let lock = await this.requestDataLock();
                 switch(event.details.type) {
@@ -320,7 +320,7 @@ function timerListener() {
     this.service.addListener(
         async event => {
             let isCorrectType;
-            isCorrectType = event.details.eventType === this.config.eventType;
+            isCorrectType = event.details.type === this.config.eventType;
             if(event.details.for === this.config.eventPlatform && isCorrectType) {
                 let amount = event.details.message.amount;
                 switch(event.details.type) {
