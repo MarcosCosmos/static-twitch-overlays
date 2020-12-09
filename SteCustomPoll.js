@@ -49,7 +49,7 @@ export default class SteCustomPoll extends Module {
 
         this.slSocket.addListener(
             event => {
-                if(event.details.for == 'twitch_account' || event.details.for == 'streamlabs') {
+                if(event.details.for === 'twitch_account' || event.details.for === 'streamlabs') {
                     let amount = event.details.message.amount;
                     switch(event.details.type) {
                         case 'donation':
@@ -122,7 +122,7 @@ export default class SteCustomPoll extends Module {
 
                 let getTargetUser = nameOptionalAt => {
                     let targetUser = nameOptionalAt;
-                    if(targetUser.charAt(0) == '@') {
+                    if(targetUser.charAt(0) === '@') {
                         targetUser = targetUser.substr(1);
                     }
                     return targetUser.toLowerCase();
@@ -178,12 +178,12 @@ export default class SteCustomPoll extends Module {
                                 if(!checkIfOpen()) {
                                     break;
                                 }
-                                if(parts.length == 2) {
+                                if(parts.length === 2) {
                                     if(!checkIsMod(event)) {
                                         break;
                                     }
                                     targetUser = getTargetUser(parts[1]);
-                                    if(typeof this.info.votes[targetUser] == 'undefined') {
+                                    if(typeof this.info.votes[targetUser] === 'undefined') {
                                         this.chatBot.client.say(event.channel, `username '${targetUser}' is not yet registered in the poll. They be registered as they use the poll or when they are awarded vote-tokens @${event.tags['display-name']}`);
                                         break;
                                     }
@@ -221,7 +221,7 @@ export default class SteCustomPoll extends Module {
                                 let i=1;
 
                                 for(; i < parts.length; i++) {
-                                    if(parts[i].charAt(parts[i].length-1) == ':') {
+                                    if(parts[i].charAt(parts[i].length-1) === ':') {
                                         pollTitle += ' ' + parts[i].substr(0, parts[i].length-1);
                                         pollTitle = pollTitle.trim();
                                         i++;
@@ -298,7 +298,7 @@ export default class SteCustomPoll extends Module {
                             if(!checkIsMod(event)) {
                                 break;
                             }
-                            if(parts.length == 2) {
+                            if(parts.length === 2) {
                                 targetUser = getTargetUser(parts[1]);
                                 delete this.info.votes[targetUser];
                                 this.updateTally();
@@ -323,7 +323,7 @@ export default class SteCustomPoll extends Module {
                                 }
                                 let targetAll;
 
-                                if(parts[1] == '!all') {
+                                if(parts[1] === '!all') {
                                     targetAll = true;
                                 } else {
                                     targetAll = false;
@@ -489,7 +489,7 @@ export default class SteCustomPoll extends Module {
         this.results.votes[optionName] += numberOfVotes;
         this.updateTally();
 
-        if(numberOfVotes > 0 && typeof this.info.pollOptions[optionName].sceneId !== 'undefined') {
+        if(numberOfVotes > 0 && typeof this.info.pollOptions[optionName].sceneId !=== 'undefined') {
             this.activateLiFX(this.info.pollOptions[optionName].sceneId);
         }
 
@@ -514,7 +514,7 @@ export default class SteCustomPoll extends Module {
             if(eachCount > countToBeat) {
                 winners = [eachName];
                 countToBeat = eachCount;
-            } else if(eachCount == countToBeat) {
+            } else if(eachCount === countToBeat) {
                 winners.push(eachName);
             }
         }

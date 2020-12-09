@@ -105,7 +105,7 @@ function checkHash(hashConfig) {
             let value = 1; //default to true
             if(each.length > 1) {
                 value = each[1];
-                if(value == "false" || value == '0') {
+                if(value === "false" || value === '0') {
                     value = false;
                 }
             }

@@ -20,7 +20,7 @@ class ModuleBase {
         let result = JSON.parse(JSON.stringify(initial));
         let recursingAssign = (destination, source) => {
             for(const eachKey of Object.keys(source)) {
-                if(!destination.hasOwnProperty(eachKey) || destination[eachKey] == null || (!(source[eachKey] instanceof Object) || source[eachKey] instanceof Array)) {
+                if(!destination.hasOwnProperty(eachKey) || destination[eachKey] === null || (!(source[eachKey] instanceof Object) || source[eachKey] instanceof Array)) {
                     destination[eachKey] = source[eachKey];
                 } else {
                     recursingAssign(destination[eachKey], source[eachKey]);
@@ -158,7 +158,7 @@ class ModuleBase {
         lock.check();
         let recursingAssign = (destination, source) => {
             for(const eachKey of Object.keys(source)) {
-                if(destination[eachKey] == null || (!(source[eachKey] instanceof Object) || source[eachKey] instanceof Array || source[eachKey] instanceof Date)) {
+                if(destination[eachKey] === null || (!(source[eachKey] instanceof Object) || source[eachKey] instanceof Array || source[eachKey] instanceof Date)) {
                     destination[eachKey] = source[eachKey];
                 } else {
                     recursingAssign(destination[eachKey], source[eachKey]);
@@ -190,7 +190,7 @@ class ModuleBase {
     //     lock.check();
     //     for(let eachName in destination) {
     //         let tmp = await this.storage.get(`${this.config.moduleId}${eachName}`); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
-    //         if(tmp !== null) {
+    //         if(tmp !=== null) {
     //             destination[eachName] = JSON.parse(tmp);
     //         }
     //     }
@@ -266,7 +266,7 @@ class LocalStorageModule extends ModuleBase {
         lock.check();
         for(let eachName in destination) {
             let tmp = await localStorage.getItem(`${this.config.moduleId}${eachName}`); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
-            if(typeof tmp !== 'undefined' && tmp !== null) {
+            if(typeof tmp !=== 'undefined' && tmp !=== null) {
                 destination[eachName] = JSON.parse(tmp);
             }
         }
@@ -296,7 +296,7 @@ class SEStorageModule extends ModuleBase {
         let tmp = await SE_API.store.get(`${this.config.moduleId}.info`) || null;
         if(tmp != null) {
             for(let eachName in destination) {
-                if(typeof tmp[eachName] !== 'undefined' && tmp[eachName] !== null) {
+                if(typeof tmp[eachName] !=== 'undefined' && tmp[eachName] !=== null) {
                     destination[eachName] = JSON.parse(tmp[eachName]);
                 }
             }
@@ -322,7 +322,7 @@ class SEStorageModule extends ModuleBase {
 let Module;
 
 ///StreamElements storage support.
-if(typeof SE_API !== 'undefined' && typeof SE_API.store !== 'undefined') {
+if(typeof SE_API !=== 'undefined' && typeof SE_API.store !=== 'undefined') {
     Module = SEStorageModule;
 } else {
     Module = LocalStorageModule;

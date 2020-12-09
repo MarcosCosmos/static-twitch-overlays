@@ -76,7 +76,7 @@ function generateBoxes() {
         watch: {
             selectedPlatform(newValue) {
                 let newOptions = Object.keys(newValue.events);
-                if(newOptions.indexOf(this.config.eventType) == -1){
+                if(newOptions.indexOf(this.config.eventType) === -1){
                     this.config.eventType = newOptions[0];
                 }
             },
@@ -230,13 +230,13 @@ function accumulationListener() {
     this.service.addListener(
         async event => {
             let isCorrectType;
-            // if(event.details.type == 'resub' || event.details.type == 'subscription') {
-            //     isCorrectType = this.config.eventType == 'resub' || this.config.eventType == 'subscription';
+            // if(event.details.type === 'resub' || event.details.type === 'subscription') {
+            //     isCorrectType = this.config.eventType === 'resub' || this.config.eventType === 'subscription';
             // } else {
-            //     isCorrectType = event.details.eventType == this.config.type;
+            //     isCorrectType = event.details.eventType === this.config.type;
             // }
-            isCorrectType = event.details.eventType == this.config.type;
-            if(event.details.for == this.config.eventPlatform && isCorrectType) {
+            isCorrectType = event.details.eventType === this.config.eventType;
+            if(event.details.for === this.config.eventPlatform && isCorrectType) {
                 let amount = event.details.message.amount;
                 switch(event.details.type) {
                     case 'superchat':
@@ -275,13 +275,13 @@ function streamEventListener() {
     this.service.addListener(
         async event => {
             let isCorrectType;
-            // if(event.details.type == 'resub' || event.details.type == 'subscription') {
-            //     isCorrectType = this.config.eventType == 'resub' || this.config.eventType == 'subscription';
+            // if(event.details.type === 'resub' || event.details.type === 'subscription') {
+            //     isCorrectType = this.config.eventType === 'resub' || this.config.eventType === 'subscription';
             // } else {
-            //     isCorrectType = event.details.eventType == this.config.type;
+            //     isCorrectType = event.details.eventType === this.config.type;
             // }
-            isCorrectType = event.details.eventType == this.config.type;
-            if(event.details.for == this.config.eventPlatform && isCorrectType) {
+            isCorrectType = event.details.eventType === this.config.eventType;
+            if(event.details.for === this.config.eventPlatform && isCorrectType) {
                 let lock = await this.requestDataLock();
                 switch(event.details.type) {
                     case 'superchat':
@@ -330,13 +330,13 @@ function timerListener() {
     this.service.addListener(
         async event => {
             let isCorrectType;
-            // if(event.details.type == 'resub' || event.details.type == 'subscription') {
-            //     isCorrectType = this.config.eventType == 'resub' || this.config.eventType == 'subscription';
+            // if(event.details.type === 'resub' || event.details.type === 'subscription') {
+            //     isCorrectType = this.config.eventType === 'resub' || this.config.eventType === 'subscription';
             // } else {
-            //     isCorrectType = event.details.eventType == this.config.type;
+            //     isCorrectType = event.details.eventType === this.config.type;
             // }
-            isCorrectType = event.details.eventType == this.config.type;
-            if(event.details.for == this.config.eventPlatform && isCorrectType) {
+            isCorrectType = event.details.eventType === this.config.type;
+            if(event.details.for === this.config.eventPlatform && isCorrectType) {
                 let amount = event.details.message.amount;
                 switch(event.details.type) {
                     case 'superchat':

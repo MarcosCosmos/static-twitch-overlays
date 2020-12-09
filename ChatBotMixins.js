@@ -76,11 +76,11 @@ async function processEventAccumulation(event, regex) {
         let increment = false;
         if(match != null) {
             let payload = event.message.substr(match.index + match[0].length);
-            if(payload == '') {
+            if(payload === '') {
                 increment = true;
             } else { 
                 payload = payload.trim();
-                if (payload[0] == '=') {
+                if (payload[0] === '=') {
                     relative = false;
                     payload = payload.substr(1).trim();
                 }
@@ -118,21 +118,21 @@ async function processEventTimer(event, regex) {
         let negative = false;
         if(match != null) {
             let payload = event.message.substr(match.index + match[0].length).trim();
-            if(payload == 'pause' || payload == 'stop') {
+            if(payload === 'pause' || payload === 'stop') {
                 await this.pause();
-            } else if(payload == 'unpause' || payload == 'start') {
+            } else if(payload === 'unpause' || payload === 'start') {
                 await this.unpause();
             } else if(payload.length > 0) {
-                if (payload[0] == '=') {
+                if (payload[0] === '=') {
                     relative = false;
                     payload = payload.substr(1).trim();
                 }
-                if(payload[0] == "-") {
+                if(payload[0] === "-") {
                     negative = true;
                     payload = payload.substr(1);
                 }
                 let parts = payload.split(':');
-                if(parts.length == 3) {
+                if(parts.length === 3) {
                     parts = parts.map(each => parseFloat(each));
                     amount = this.computeMs(parts[0], parts[1], parts[2]);
                     if(negative) {

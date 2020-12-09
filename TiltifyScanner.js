@@ -104,7 +104,7 @@ class TiltifyScanner extends EventEmitter {
                 } else {
                     atEnd = true;
                 }
-                if(response.links.next.length == 0) {
+                if(response.links.next.length === 0) {
                     atEnd = true;
                 }
             } catch (e) {

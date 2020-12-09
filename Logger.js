@@ -113,7 +113,7 @@ class Logger extends Module {
         let lock = await this.requestDataLock();
         event.id = this.info.lastEventId;
         this.info.events.unshift(event);
-        if(this.lastEventId == Number.MAX_SAFE_INTEGER) {
+        if(this.lastEventId === Number.MAX_SAFE_INTEGER) {
             this.info.lastEventId = 0;
         } else {
             ++this.info.lastEventId;

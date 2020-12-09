@@ -243,7 +243,7 @@ export default class Timer extends BasicDisplay {
     }
 
     timeToNowIfNull() {
-        if(this.info.referenceTime == null) {
+        if(this.info.referenceTime === null) {
             this.info.snapshotTime = new Date(Date.now());
             this.info.referenceTime = new Date(this.info.snapshotTime.valueOf());
         }
@@ -332,7 +332,7 @@ export default class Timer extends BasicDisplay {
     }
 
     start() {
-        if(!this.info.isPaused && this.updateInterval == null) {
+        if(!this.info.isPaused && this.updateInterval === null) {
             this.updateInterval = setInterval(async () => {
                 let lock = await this.requestDataLock();
                 this.updateSnapshot();
@@ -347,7 +347,7 @@ export default class Timer extends BasicDisplay {
            //get the gap based on the current mode, then switch modes, then set the gap again to get the same value on the timer despite moving in the opposite direction?
            this.stop();
            this.timeToNowIfNull();
-           this.info.timerMode = this.info.timerMode == 'up' ? 'down' : 'up';
+           this.info.timerMode = this.info.timerMode === 'up' ? 'down' : 'up';
            this.setReferenceTime(this.currentGapMs, this.info.snapshotTime.valueOf());
            this.start();
         }
@@ -434,7 +434,7 @@ export default class Timer extends BasicDisplay {
 // }
 
 // async function runTimer() {
-//     if(currentSecondInterval == null) {
+//     if(currentSecondInterval === null) {
 //         haveDoneLastCheck = false; //always allow one last check when the timer runs out
 //         checkCampaign(); //do the first update immediately;
 //         updateTimerDisplay();

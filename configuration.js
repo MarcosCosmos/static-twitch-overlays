@@ -21,9 +21,9 @@ function relativeToAbsolute(path) {
     stack.pop(); // remove current file name (or empty string)
                  // (omit if "base" is the current folder without trailing slash)
     for (var i=0; i<parts.length; i++) {
-        if (parts[i] == ".")
+        if (parts[i] === ".")
             continue;
-        if (parts[i] == "..")
+        if (parts[i] === "..")
             stack.pop();
         else
             stack.push(parts[i]);
@@ -67,12 +67,12 @@ let doWork = async () => {
         for(const eachServiceType of Object.keys(serviceTypes)) {
             let widgetConfigToUse;
             let serviceConfigToUse;
-            if(defaultConfig.widgetType == eachWidgetType) {
+            if(defaultConfig.widgetType === eachWidgetType) {
                 widgetConfigToUse = defaultConfig.widgetConfig;
             } else {
                 widgetConfigToUse = {};
             }
-            if(defaultConfig.serviceType == eachServiceType) {
+            if(defaultConfig.serviceType === eachServiceType) {
                 serviceConfigToUse = defaultConfig.serviceConfig;
             } else {
                 serviceConfigToUse = {};
@@ -266,7 +266,7 @@ let doWork = async () => {
             async loadTheme() {
                 //only change theme if the new theme is real
                 let themeJsUrl = `./themes/${this.theme}/displays.js`;
-                if((await fetch(themeJsUrl)).status == 200){
+                if((await fetch(themeJsUrl)).status === 200){
                     let newBoxes = (await import(themeJsUrl)).default;
                     //assign only those that exist;
                     for(const eachKey of Object.keys(newBoxes)) {

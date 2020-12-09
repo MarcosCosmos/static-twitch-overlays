@@ -143,13 +143,13 @@ export default class BasicGoal extends Counter {
         let newTimesReached;
         let totalTimesReached = this.info.goalsReached;
         if(this.config.useModulo) {
-            nextValue = this.config.goal == 0 ? this.info.currentValue : this.info.currentValue % this.config.goal;
-            newTimesReached = this.config.goal == 0 ? 0 : Math.floor(this.info.currentValue / this.config.goal);
+            nextValue = this.config.goal === 0 ? this.info.currentValue : this.info.currentValue % this.config.goal;
+            newTimesReached = this.config.goal === 0 ? 0 : Math.floor(this.info.currentValue / this.config.goal);
             totalTimesReached += newTimesReached;
         } else {
             //if not using the modulo, then keep track of all the count past the goal, and only track the first time the goal is reached
             nextValue = this.info.currentValue;
-            let tmpTimesReached = this.config.goal == 0 ? 0 : (this.info.currentValue > this.config.goal ? 1 : 0);
+            let tmpTimesReached = this.config.goal === 0 ? 0 : (this.info.currentValue > this.config.goal ? 1 : 0);
             newTimesReached = totalTimesReached = Math.max(0, tmpTimesReached - this.info.goalsReached);
         }
 
