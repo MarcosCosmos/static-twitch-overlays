@@ -230,11 +230,6 @@ function accumulationListener() {
     this.service.addListener(
         async event => {
             let isCorrectType;
-            // if(event.details.type === 'resub' || event.details.type === 'subscription') {
-            //     isCorrectType = this.config.eventType === 'resub' || this.config.eventType === 'subscription';
-            // } else {
-            //     isCorrectType = event.details.eventType === this.config.type;
-            // }
             isCorrectType = event.details.eventType === this.config.eventType;
             if(event.details.for === this.config.eventPlatform && isCorrectType) {
                 let amount = event.details.message.amount;
@@ -275,11 +270,6 @@ function streamEventListener() {
     this.service.addListener(
         async event => {
             let isCorrectType;
-            // if(event.details.type === 'resub' || event.details.type === 'subscription') {
-            //     isCorrectType = this.config.eventType === 'resub' || this.config.eventType === 'subscription';
-            // } else {
-            //     isCorrectType = event.details.eventType === this.config.type;
-            // }
             isCorrectType = event.details.eventType === this.config.eventType;
             if(event.details.for === this.config.eventPlatform && isCorrectType) {
                 let lock = await this.requestDataLock();
@@ -330,12 +320,7 @@ function timerListener() {
     this.service.addListener(
         async event => {
             let isCorrectType;
-            // if(event.details.type === 'resub' || event.details.type === 'subscription') {
-            //     isCorrectType = this.config.eventType === 'resub' || this.config.eventType === 'subscription';
-            // } else {
-            //     isCorrectType = event.details.eventType === this.config.type;
-            // }
-            isCorrectType = event.details.eventType === this.config.type;
+            isCorrectType = event.details.eventType === this.config.eventType;
             if(event.details.for === this.config.eventPlatform && isCorrectType) {
                 let amount = event.details.message.amount;
                 switch(event.details.type) {

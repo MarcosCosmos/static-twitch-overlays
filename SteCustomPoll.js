@@ -489,7 +489,7 @@ export default class SteCustomPoll extends Module {
         this.results.votes[optionName] += numberOfVotes;
         this.updateTally();
 
-        if(numberOfVotes > 0 && typeof this.info.pollOptions[optionName].sceneId !=== 'undefined') {
+        if(numberOfVotes > 0 && typeof this.info.pollOptions[optionName].sceneId !== 'undefined') {
             this.activateLiFX(this.info.pollOptions[optionName].sceneId);
         }
 
