@@ -10,4 +10,24 @@ pages:
     paths:
       - public
   only:
-    - live-testing
+    - master
+
+# Thanks https://stackoverflow.com/a/58402821 for this idea
+develop:
+    artifacts:
+        paths:
+          - public
+
+    environment:
+        name: Develop
+        url: "https://$CI_PROJECT_NAMESPACE.gitlab.io/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/index.html"
+
+    script: |
+      - mkdir .public
+      - cp -r * .public
+      - mv .public public
+    
+    stage: deploy
+
+    variables:
+        PUBLIC_URL: "/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public"
