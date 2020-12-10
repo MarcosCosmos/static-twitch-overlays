@@ -1,0 +1,19 @@
+<!doctype html>
+<head>
+<link rel="stylesheet" href="./core.css" title="Core CSS with default styles"/>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js' type='text/javascript'></script>
+<script type="module">
+import initialise from './embed.js';
+let config;
+if(document.location.search.length > 0) {
+    config = JSON.parse(decodeURIComponent(document.location.search.slice(1)));
+} else {
+    config = {};
+}
+initialise(config);
+</script>
+</head>
+<body>
+<div id="embed"></div>
+</body>
+</html>

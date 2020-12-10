@@ -1,0 +1,117 @@
+/* globals from the mouse tiltify goal */
+body {
+    /* background: black;
+    color: #cecece; */
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.urlBox, .infoBox, .controlsBox, .settingsBox {
+    margin-top: 1em;
+    margin-bottom: 1em;
+    padding: 5px;
+    border: #cecece dotted 2px;
+    border-radius: 5px;
+    /* background: #020202;
+    color: #cecece; */
+}
+
+#previewSection, #previewSection > * {
+    width: 100%;
+}
+
+.logBox .eventListCon {
+    max-height: 15em;
+    overflow-y: auto;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.logBox .eventList {
+    display: inline-block;
+    list-style-type: none;
+}
+
+.logBox .eventList li:not(:first-child) {
+    padding-top: 0.5em;
+}
+
+.logBox .eventList li:not(:last-child) {
+    padding-bottom: 0.5em;
+    border-bottom: 1px dashed;
+}
+
+#urlsSection, #infoSection, #controlsSection, #formSection {
+    /* background: #a0a0a0; */
+    padding-top:5px;
+    padding-bottom: 5px;
+    /* color: black; */
+    margin-top: .5em;
+    margin-bottom: .5em;
+}
+
+.urlText {
+    /* background: lightgrey;
+    color: black; */
+    font-family: monospace;
+    /* text-shadow: none; */
+    /* padding: 5px;
+    font-weight: normal; */
+    display: block;
+    /* overflow-x: scroll; */
+}
+
+.urlText > pre {
+    overflow-x: visible !important;
+    margin: 0 !important;
+}
+
+#logDisplayBox > ul {
+    list-style: none;
+    display: inline-block;
+    margin-top: 0;
+
+    text-align: left;
+}
+#logDisplayBox > ul > li:not(:first-child) {
+    border-top: black dashed;
+    padding-top: 0.5em;
+}
+#logDisplayBox > ul > li:not(:last-child) {
+    margin-bottom: 0.5em;
+}
+
+.controlsBox > div:not(:first-child), .infoBox > div:not(:first-child), .settingsBox > div:not(:first-child){
+    margin-top: 1em;
+}
+.controlsBox > div:not(:last-child), .infoBox > div:not(:last-child), .settingsBox > div:not(:last-child){
+    margin-bottom: 1em;
+}
+
+/*config-form-specific (definitely extract to form specific css)*/
+#previewSection {
+    display: absolute;
+}
+
+
+#globalCon, #activationCon {
+    text-align: center;
+}
+#globalCon > div {
+    display: inline-block;
+    text-align: left;
+}
+
+#infoCon, #activationCon, #settingsCon{
+    background: white;
+    padding: 5px;
+} 
+
+.hidden {
+    display: none !important;
+}
+
+#previewSection, #previewSection > * {
+    width: 100%;
+}
