@@ -22,7 +22,7 @@ develop:
         name: Develop
         url: "https://$CI_PROJECT_NAMESPACE.gitlab.io/-/$CI_PROJECT_NAME/-/jobs/$CI_JOB_ID/artifacts/public/index.html"
 
-    script: |
+    script:
       - mkdir .public
       - cp -r * .public
       - mv .public public
