@@ -123,10 +123,11 @@ function generateTimerBoxes() {
 
 function accumulationListener() {
     this.service.addListener(
-        async event => {
+        event => {
             switch(event.type) {
                 case 'donation':
-                    await this.add(event.details.amount);
+                    this.add(event.details.amount);
+                    this.requestSave(); //don't await the next save event before continuing
                     break;
             }
         }
@@ -135,26 +136,25 @@ function accumulationListener() {
 
 function streamEventListener() {
     this.service.addListener(
-        async event => {
-            let lock = await this.requestDataLock();
+        event => {
             this.info.currentEvent = {
                 by: event.details.name,
                 detail: event.details.message.formattedAmount,
                 raw: event.details
             };
-            await this.save(lock);
+            this.requestSave(); //don't await the next save event before continuing
         }
     );
 }
 
 function timerListener() {
     this.service.addListener(
-        async event => {
+        event => {
             switch(event.type) {
                 case 'donation':
-                    let lock = await self.requestDataLock();
-                    await this.add(event.details.amount*this.config.extensionAmount);
-                    await this.save(lock);
+                    this.add(event.details.amount*this.config.extensionAmount);
+                    this.updateCurrentGap();
+                    this.requestSave(); //don't await the next save event before continuing
                     break;
             }
         }

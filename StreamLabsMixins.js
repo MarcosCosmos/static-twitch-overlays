@@ -228,21 +228,20 @@ function generateTimerBoxes() {
 
 function accumulationListener() {
     this.service.addListener(
-        async event => {
+        event => {
             let isCorrectType;
             isCorrectType = event.details.type === this.config.eventType;
             if(event.details.for === this.config.eventPlatform && isCorrectType) {
                 let amount = event.details.message.amount;
                 switch(event.details.type) {
                     case 'superchat':
-                        //superchats are measured in micros of a unit, so divide by 1000000 before continueing
+                        //superchats are measured in micros of a unit, so divide by 1000000 before continuing
                         amount /= 1000000;
                     case 'donation':
                     case 'bits':
                         {
-                        let lock = await this.requestDataLock();
-                        await this.add(amount);
-                        await this.save(lock);
+                        this.add(amount);
+                        this.requestSave(); //don't await the next save event before continuing
                         }
                         break;
                     case 'follow':
@@ -250,17 +249,14 @@ function accumulationListener() {
                     case 'host':
                     case 'raid':
                         {
-                        let lock = await this.requestDataLock();
-                        await this.increment();
-                        await this.save(lock);
+                        this.increment();
+                        this.requestSave(); //don't await the next save event before continuing
                         }
                         break;
                     default:
                         return; //lock wasn't grabbed
 
-                }
-
-                
+                }                
             }
         }
     );
@@ -268,11 +264,10 @@ function accumulationListener() {
 
 function streamEventListener() {
     this.service.addListener(
-        async event => {
+        event => {
             let isCorrectType;
             isCorrectType = event.details.type === this.config.eventType;
             if(event.details.for === this.config.eventPlatform && isCorrectType) {
-                let lock = await this.requestDataLock();
                 switch(event.details.type) {
                     case 'superchat':
                         //superchats are measured in micros of a unit, so divide by 1000000 before continueing
@@ -310,7 +305,7 @@ function streamEventListener() {
                         return;
 
                 }
-                await this.save(lock);
+                this.requestSave(); //don't await the next save event before continuing
             }
         }
     );
@@ -318,7 +313,7 @@ function streamEventListener() {
 
 function timerListener() {
     this.service.addListener(
-        async event => {
+        event => {
             let isCorrectType;
             isCorrectType = event.details.type === this.config.eventType;
             if(event.details.for === this.config.eventPlatform && isCorrectType) {
@@ -331,9 +326,9 @@ function timerListener() {
                         amount /= 100
                     case 'donation':
                         {
-                        let lock = await this.requestDataLock();
-                        await this.add(amount*this.config.extensionAmount);
-                        this.save(lock);
+                        this.add(amount*this.config.extensionAmount);
+                        this.updateCurrentGap();
+                        this.requestSave(); //don't await the next save event before continuing
                         }
                         break;
                     case 'follow':
@@ -342,9 +337,9 @@ function timerListener() {
                     case 'host':
                     case 'raid':
                         {
-                        let lock = await this.requestDataLock();
-                        await this.add(this.config.extensionAmount);
-                        this.save(lock);
+                        this.add(this.config.extensionAmount);
+                        this.updateCurrentGap();
+                        this.requestSave(); //don't await the next save event before continuing
                         }
                         break;
                     default:

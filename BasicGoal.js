@@ -60,17 +60,14 @@ export default class BasicGoal extends Counter {
                 </form>
             `,
             watch: {
-                'info.totalValue': async function() {
-                    self.save(await self.requestDataLock());
+                'info.totalValue': function() {
+                    self.requestSave();
                 },
-                'info.currentValue': async function(value) {
-                    let lock = await self.requestDataLock();
+                'info.currentValue': function(value) {
                     let oldTimesReached = this.info.goalsReached;
-                    await self.checkGoalReached();
+                    self.checkGoalReached();
                     if(value != this.info.currentValue || oldTimesReached != this.info.goalsReached) {
-                        self.save(lock);
-                    } else {
-                        lock.release();
+                        self.requestSave();
                     }
                 }
             }
@@ -115,30 +112,30 @@ export default class BasicGoal extends Counter {
     /**
      * Adds 1 the goal progress and updates data and elements accordingly
      */
-    async increment() {
+    increment() {
         super.increment();
-        await this.checkGoalReached();
+        this.checkGoalReached();
     }
 
     /**
      * Adds the given amount to the goal progress and updates data and elements accordingly
      * @param float amount 
      */
-    async add(amount) {
+    add(amount) {
         super.add(amount);
-        await this.checkGoalReached();
+        this.checkGoalReached();
     }
 
     /**
      * Sets the goal progress to the given amount and updates data and elements accordingly
      * @param float amount 
      */
-    async set(amount) {
+    set(amount) {
         super.set(amount);
-        await this.checkGoalReached();
+        this.checkGoalReached();
     }
 
-    async checkGoalReached() {
+    checkGoalReached() {
         let nextValue;
         let newTimesReached;
         let totalTimesReached = this.info.goalsReached;
@@ -161,7 +158,7 @@ export default class BasicGoal extends Counter {
         if(newTimesReached != 0) {
             //log events and update the stored values accordingly.
             for(let i=0; i <newTimesReached; ++i) {
-                await this.logger.log({
+                this.logger.log({
                     name: `Goal (${this.config.displayTitle}) Reached!`,
                     time: new Date(Date.now())
                 });
@@ -169,9 +166,9 @@ export default class BasicGoal extends Counter {
         }
     }
 
-    async eraseData(lock) {
-        await super.eraseData(lock);
-        await this.logger.eraseData(await this.logger.requestDataLock());
+    async eraseData() {
+        await super.eraseData();
+        await this.logger.eraseData();
     }
 
 }

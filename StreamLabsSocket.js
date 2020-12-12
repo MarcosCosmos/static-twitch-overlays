@@ -3,6 +3,8 @@ import Module from './Module.js';
 
 const defaultConfig = {
     socketToken: '',
+    eventType: 'donation', //https://dev.streamlabs.com/docs/socket-api <--- type/for info/list
+    eventPlatform: 'streamlabs', //https://dev.streamlabs.com/docs/socket-api <--- type/for info/list,
     moduleId: 'streamlabsSocket',
     displayTitle: 'Streamlabs Socket API'
 };
@@ -37,40 +39,25 @@ class StreamLabsSocket extends EventEmitter {
 
         this.socket.on('error', (err) => console.err(err));
 
-        let handleOneEvent = async eventData => {
-            // let lock = await this.requestDataLock();
-            // if(!this.info.eventsSeen.has(eventData.message._id)) { 
-            //     this.info.eventsSeen.add(eventData.message._id);
-            //     await this.save(lock);
-            //     for(const eachListener of this.listeners) {
-            //         try {
-            //             eachListener({
-            //                 type: 'streamlabs',
-            //                 details: eventData
-            //             });
-            //         } catch (err) {
-            //             console.error(err);
-            //         }
-            //     }
-            // }
-            for(const eachListener of this.listeners) {
-                try {
-                    await eachListener({
-                        type: 'streamlabs',
-                        details: eventData
-                    });
-                } catch (err) {
-                    console.error(err);
-                }
-            }
-        };
+        var self=this;
 
         //Perform Action on event
         this.socket.on('event', async (eventData) => {
             if(eventData.type != 'alertPlaying') {
                 try {
                     for(let each of eventData.message) {
-                        await handleOneEvent({type: eventData.type, for: eventData.for, message: each});
+                        let eachModified = {type: eventData.type, for: eventData.for, message: each};
+                        for(const eachListener of self.listeners) {
+                            try {
+                                //possibly don't need to await each listener anymore since they control their own data lock? however, having the await here allowed the listener to dictate that.
+                                await eachListener({
+                                    type: 'streamlabs',
+                                    details: eachModified
+                                });
+                            } catch (err) {
+                                console.error(err);
+                            }
+                        }
                     }
                 } catch(e) {
                     console.error(e);

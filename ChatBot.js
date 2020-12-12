@@ -102,16 +102,12 @@ class ChatBot extends EventEmitter {
         this.client.on('message', async (channel, tags, message, isMyMsg) => {
             let now = new Date(Date.now());
             if(isMyMsg) return;
-            // let lock = await self.requestDataLock();
-            if(self.levelOf(tags) >= self.config.userLevel ) {//&& !self.info.eventsSeen.has(tags.id)
+            if(self.levelOf(tags) >= self.config.userLevel ) {
                 if(now - self.info.lastMessageTime < self.config.cooldown) {
-                    // lock.release();
                     return;
                 } else {
                     self.info.lastMessageTime = now;
                 }
-                // self.info.eventsSeen.add(tags.id);
-                // await self.save(lock);
                 for(const each of self.listeners) {
                     await each({
                         channel,
@@ -121,21 +117,16 @@ class ChatBot extends EventEmitter {
                     });
                 }
             }
-            //  else {
-            //     lock.release();
-            // }
         });
-        this.client.connect();
+        await this.client.connect();
     }
 
     async stop() {
-        let lock = await this.requestDataLock();
         if(this.client) {
             let tmp = this.client;
             this.client = null;
             await tmp.disconnect();
         }
-        lock.release();
     }
 
     async loadInfo(lock) {
@@ -143,7 +134,6 @@ class ChatBot extends EventEmitter {
         if(this.info.lastMessageTime != null) {
             this.info.lastMessageTime = new Date(Date.parse(this.info.lastMessageTime));
         }
-        lock.release();
     }
 }
 
