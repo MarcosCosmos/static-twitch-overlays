@@ -87,14 +87,15 @@ class TiltifyScanner extends EventEmitter {
                         firstPass = false;
                     }
 
-                    // let lock = await self.requestDataLock();
-                    // for(const each of donations) {
-                    //     if(!this.info.eventsSeen.has(each.id)) { 
-                    //         this.info.eventsSeen.add(each.id);
-                            
-                    //     }
-                    // }
-                    // await this.save(lock);
+                    for(const each of donations) {
+                        if(!this.info.eventsSeen.has(each.id)) { 
+                            this.info.eventsSeen.add(each.id);
+                            await eachListener({
+                                type: 'donation',
+                                details: each
+                            });
+                        }
+                    }
                 }
                 if(response.links.prev.length > 0) {
                     let tmp = new URLSearchParams(response.links.prev).get('before');

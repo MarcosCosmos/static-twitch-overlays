@@ -59,7 +59,7 @@ switch(config.boxToShow) {
             activeWidget.start();
             activeService.start();
         }
-        work();
+        await work();
         break;
     default:
         vue = new Vue({
@@ -92,4 +92,5 @@ switch(config.boxToShow) {
             }
         });
     }
+    return activeWidget;
 };

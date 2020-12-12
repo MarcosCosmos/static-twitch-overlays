@@ -32,7 +32,7 @@ class Counter extends BasicDisplay {
             `,
             watch: {
                 'info.currentValue': async function() {
-                    self.save(await self.requestDataLock());
+                    self.requestSave();
                 }
             }
             

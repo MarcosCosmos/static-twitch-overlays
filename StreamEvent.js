@@ -2,7 +2,6 @@ import Module from './Module.js';
 import BasicDisplay from './BasicDisplay.js';
 
 let defaultConfig = {
-    nameOnly: false,
     defaultData: {
         currentEvent: {by: '-', detail: '-'}
     },
