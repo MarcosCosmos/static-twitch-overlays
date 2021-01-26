@@ -29,11 +29,7 @@ if('_core_.dataScope' in fields) {
     config.moduleId = fields['_core_.dataScope'];
     delete fields['_core_.dataScope'];
 }
-<<<<<<< HEAD
 if('_core_.theme' in fields) {
-=======
-if('_core_.theme' in Object.keys(fields)) {
->>>>>>> feature-se-fields
     config.theme = fields['_core_.theme'];
     delete fields['_core_.theme'];
 }
