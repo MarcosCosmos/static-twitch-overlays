@@ -311,7 +311,7 @@ let doWork = async () => {
                 for(let eachModule of ['widget', 'service']) {
                     let targetFields = this[eachModule].streamElementsFields;
                     for(let eachKey of Object.keys(targetFields)) {
-                        if(eachModule !== 'service' || eachKey !== 'moduleId') {
+                        if(eachKey !== 'dataScope') {
                             let compKey = `_${eachModule}_.${eachKey}`;
                             let eachField = targetFields[eachKey];
                             fieldsResult[compKey] = eachField.settings;
@@ -324,6 +324,13 @@ let doWork = async () => {
 
                 dataResult['_core_.widget_type'] = this.widgetType;
                 dataResult['_core_.service_type'] = this.serviceType;
+
+
+                fieldsResult['_core_.dataScope'] = {
+                    type: 'text',
+                    label: 'Widget ID (Widgets with the same ID will share and display the same data)'
+                };
+                dataResult['_core_.dataScope'] = this.moduleId;
                 
                 this.seFieldsJSON = JSON.stringify(fieldsResult, null, 4);
                 this.seDataJSON = JSON.stringify(dataResult, null, 4);
@@ -334,6 +341,7 @@ let doWork = async () => {
         },
         async created() {
             this.loadTheme();
+            this.widget.config.moduleId = this.widgetId;
             this.updateSEJSON();
             this.seHTML = await (await fetch(`./embed_se.html`)).text();
         },

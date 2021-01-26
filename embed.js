@@ -25,10 +25,9 @@ if('_core_.service_type' in Object.keys(fields)) {
     config.widgetType = fields['_core_.service_type'];
     delete fields['_core_.service_type'];
 }
-if('_core_.data_override' in Object.keys(fields)) {
-    let data = fields['_core_.service_type'];
-    //do something with it
-    delete fields['_core_.data_override'];
+if('_core_.dataScope' in Object.keys(fields)) {
+    config.moduleId = fields['_core_.dataScope'];
+    delete fields['_core_.dataScope'];
 }
 
 let MixedClass = generateMixinWidget(config.widgetType, config.serviceType);
