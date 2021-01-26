@@ -60,6 +60,10 @@ body {
     font-weight: normal; */
     display: block;
     /* overflow-x: scroll; */
+    white-space: pre;
+    max-height: 20em;
+    overflow:auto;
+    width: 100%;
 }
 
 .urlText > pre {

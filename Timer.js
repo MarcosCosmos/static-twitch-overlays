@@ -35,6 +35,10 @@ function secondsIn(ms) {
 
 //todo: consider adding global options for overriding config via chat?
 
+//todo: fields; (include reference time, some of the fields that are currently data.)
+
+//todo: only save on start/stop?
+
 /**
  * Note this basic/base goal doesn't include an updating mechanism in and of itself other than manually through settings, and should be extended with subclasses that interact with other modules (such a streamlabs socket.io module) to listen for updates
  */
@@ -334,16 +338,17 @@ export default class Timer extends BasicDisplay {
     start() {
         if(!this.info.isPaused && this.updateInterval === null) {
             this.updateInterval = setInterval(async () => {
-                let lock = await this.requestDataLock();
                 this.updateSnapshot();
-                await this.checkFinished();
-                await this.save(lock);
+                let stateChanged = await this.checkFinished();
+                if(stateChanged) {
+                    await this.pause();
+                }
             }, 1000);
         }
     }
 
     setMode(targetMode) {
-        if(targetMode != this.info.timerMode) {
+        if(targetMode !== this.info.timerMode) {
            //get the gap based on the current mode, then switch modes, then set the gap again to get the same value on the timer despite moving in the opposite direction?
            this.stop();
            this.timeToNowIfNull();
@@ -355,8 +360,10 @@ export default class Timer extends BasicDisplay {
 
     /**
      * Only timers counters down can 'finish', and the timer must become non-zero again to unset it
+     * Returns whether or not the finished state changed.
      */
     async checkFinished() {
+        let oldSeen = this.info.finishSeen;
         if(!this.info.finishSeen) {
             if(this.currentGapMs <= 0) {
                 await this.logger.log({
@@ -369,6 +376,7 @@ export default class Timer extends BasicDisplay {
             //if we've already finished, but are no longer finished, then clear the flag to allow for finishing again
             this.info.finishSeen = false;
         }
+        return oldSeen !== this.info.finishSeen;
     }
 
     async loadInfo(lock) {

@@ -13,9 +13,23 @@ const defaultConfig = {
     theme: 'default'
 };
 
-export default async (config) => {
+export default async (config, fields={}, start=true) => {
 config = Module.mixin(defaultConfig, config);
 
+//use se field overrides to set the widget and service types.
+if('_core_.widget_type' in Object.keys(fields)) {
+    config.widgetType = fields['_core_.widget_type'];
+    delete fields['_core_.widget_type'];
+}
+if('_core_.service_type' in Object.keys(fields)) {
+    config.widgetType = fields['_core_.service_type'];
+    delete fields['_core_.service_type'];
+}
+if('_core_.data_override' in Object.keys(fields)) {
+    let data = fields['_core_.service_type'];
+    //do something with it
+    delete fields['_core_.data_override'];
+}
 
 let MixedClass = generateMixinWidget(config.widgetType, config.serviceType);
 let activeService = new serviceTypes[config.serviceType].constructor(config.serviceConfig);
@@ -24,7 +38,33 @@ let activeWidget = new MixedClass(config.widgetConfig, activeService);
 await activeService.finalizeBoxes();
 await activeWidget.finalizeBoxes();
 
+for(let eachCompKey of Object.keys(fields)) {
+    let eachCategory, eachInnerKey;
+    {
+        let parts = eachCompKey.split('.', 1);
+        if(parts.length == 2) {
+            eachCategory = parts[0];
+            eachInnerKey = parts[1];
+        } else {
+            continue;
+        }
+    }
+    let targetFields;
+    switch(eachCategory) {
+        case '_widget_':
+            targetFields = activeWidget.streamElementsFields;
+            break;
+        case '_service_':
+            targetFields = activeService.streamElementsFields;
+            break;
+        default:
+            continue;
+    }
+    targetFields[eachInnerKey].destination = fields[eachCompKey];
+}
+
 let vue;
+config.boxToShow = config.boxToShow || 'display';
 switch(config.boxToShow) {
     case 'display':
         let work = async () => {
@@ -56,8 +96,10 @@ switch(config.boxToShow) {
                 },
                 template: `<display></display>`
             });
-            activeWidget.start();
-            activeService.start();
+            if(start) {
+                activeWidget.start();
+                activeService.start();
+            }
         }
         work();
         break;

@@ -20,7 +20,7 @@ let displayMixins = {
         template: `
             <div class="displayBox eventBox" ref="displayBox">
                 {{info.currentEvent.by}}
-                <template v-if="!config.nameOnly">
+                <template v-if="typeof info.currentEvent.detail !== 'undefined'">
                     - {{info.currentEvent.detail}}
                 </template>
             </div>

@@ -25,7 +25,33 @@ let defaultConfig;
 export default class BasicGoal extends Counter {
     constructor(config=defaultConfig) {
         super(Module.mixin(defaultConfig, config));
-        this.logger = new Logger({moduleId: `${this.config.moduleId}_log`});
+        this.logger = new Logger(this.config.moduleId);
+    }
+
+    populateSEFields() {
+        super.populateSEFields();
+        let self=this;
+        Object.assign(this.streamElementsFields, 
+            {
+                goal: {
+                    get destination(){return self.config.goal;},
+                    set destination(v){self.config.goal = v;},
+                    settings: {
+                        type: 'number',
+                        label: 'Goal Amount'
+                    }
+                },
+                useModulo: {
+                    get destination(){return self.config.useModulo;},
+                    set destination(v){self.config.useModulo = v;},
+                    settings: {
+                        type: 'checkbox',
+                        label: 'Looping? (goes to 0 at goal)'
+                    }
+                }
+                //not including step or min(?); these are inferred from other settings at the mixin stage largely; may pass them in as concrete defaults in the generated html/js fragments
+            }
+        );
     }
 
     generateBoxes() {

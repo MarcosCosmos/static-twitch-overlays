@@ -39,6 +39,11 @@ class Counter extends BasicDisplay {
         });
     }
 
+    populateSEFields() {
+        super.populateSEFields();
+        //nothing else to do for now.
+    }
+
     /**
      * Adds 1 the counter and updates data and elements accordingly
      */

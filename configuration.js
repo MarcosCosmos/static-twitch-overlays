@@ -1,12 +1,6 @@
-// import StreamLabsMixins from './StreamLabsMixins.js';
-// import TiltifyMixins from './TiltifyMixins.js';
-// import StreamlabsSocket from './StreamLabsSocket.js';
-// import TiltifyScanner from './TiltifyScanner.js';
-// import BasicGoal from './BasicGoal.js';
-// import BasicAlert from './BasicAlert.js';
-// import EventDisplay from './EventDisplay.js';
-// import Logger from './Logger.js';
-// import StreamLabsSocket from './StreamLabsSocket.js';
+
+//todo: make the configuration page more user friendly; e.g. start new link..
+
 import {widgetTypes, serviceTypes, generateMixinWidget} from './generateMixinWidget.js';
 import Module from './Module.js';
 
@@ -37,6 +31,23 @@ function Set_toJSON(key, value) {
   }
   return value;
 }
+
+function selectText(node) {
+    if (document.body.createTextRange) {
+        const range = document.body.createTextRange();
+        range.moveToElementText(node);
+        range.select();
+    } else if (window.getSelection) {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    } else {
+        console.warn("Could not select text in node: Unsupported browser.");
+    }
+}
+
 //todo: required fields?
 
 //TODO: SWITCHING TYPES LOSES MIXIN SETTINGS?
@@ -147,7 +158,7 @@ let doWork = async () => {
                         <div id="previewSection">
                             <slot name="displayBox"></slot>
                         </div>
-                        <h1 class="btn-lg btn-block btn-secondary block" v-on:click="toggle('links')">Links</h1>
+                        <h1 class="btn-lg btn-block btn-secondary block" v-on:click="toggle('links')">Links & Codes</h1>
                         <div id="urlsSection" :class="{hidden: !visibilities.links}">
                             <slot name="urlBoxes"></slot>
                         </div>
@@ -190,6 +201,9 @@ let doWork = async () => {
             serviceTypes: serviceTypes,
             theme: defaultConfig.theme || 'default',
             themeBoxes: Object.assign({}, defaultThemeBoxes),
+            seHTML: '',
+            seFieldsJSON: '',
+            seDataJSON: ''
         }},
         components: mixedComponents,
         computed: {
@@ -242,7 +256,7 @@ let doWork = async () => {
                     serviceType: this.serviceType,
                     widgetConfig: this.widget.config,
                     serviceConfig: this.service.config
-                }, Set_toJSON)}`;
+                }, Set_toJSON, 4)}`;
             },
             displayBox() {
                 return (this.themeBoxes[this.widgetType].bind(this.widget))();
@@ -260,6 +274,9 @@ let doWork = async () => {
         watch: {
             theme() {
                 this.loadTheme();
+            },
+            settingsJSON() {
+                this.updateSEJSON();
             }
         },
         methods: {
@@ -286,10 +303,39 @@ let doWork = async () => {
                     
                     document.head.appendChild(newStyleSheet);
                 }
+            },
+            updateSEJSON() {
+                //now assign SE field defaults
+                let fieldsResult = {};
+                let dataResult = {};
+                for(let eachModule of ['widget', 'service']) {
+                    let targetFields = this[eachModule].streamElementsFields;
+                    for(let eachKey of Object.keys(targetFields)) {
+                        if(eachModule !== 'service' || eachKey !== 'moduleId') {
+                            let compKey = `_${eachModule}_.${eachKey}`;
+                            let eachField = targetFields[eachKey];
+                            fieldsResult[compKey] = eachField.settings;
+                            dataResult[compKey] = eachField.destination;
+                        }
+                    }
+                }
+
+                // dataResult['_core_.generation_timestamp'] = Date.now();
+
+                dataResult['_core_.widget_type'] = this.widgetType;
+                dataResult['_core_.service_type'] = this.serviceType;
+                
+                this.seFieldsJSON = JSON.stringify(fieldsResult, null, 4);
+                this.seDataJSON = JSON.stringify(dataResult, null, 4);
+            },
+            forceSelection(event) {
+                selectText(event.target);
             }
         },
-        created() {
+        async created() {
             this.loadTheme();
+            this.updateSEJSON();
+            this.seHTML = await (await fetch(`./embed_se.html`)).text();
         },
         template: `
             <component :is="currentComponentKey" :widget-id="moduleId" :display-box="displayBox">
@@ -314,10 +360,14 @@ let doWork = async () => {
                         <a class="urlText alert alert-light" :href="formUrl">
                             <pre>{{formUrl}}</pre>
                         </a>
-                        <h4>StreamElements 'fields'</h4>
-                        <span class="urlText alert alert-light">
-                            <pre>{{settingsJSON}}</pre>
-                        </span>
+                        <h4>Settings JSON</h4>
+                        <div class="urlText alert alert-light" v-on:click="forceSelection">{{settingsJSON}}</div>
+                        <h4>StreamsElements Embed Code (HTML)</h4>
+                        <div class="urlText alert alert-light" v-on:click="forceSelection">{{seHTML}}</div>
+                        <h4>StreamsElements Embed Code (Fields)</h4>
+                        <div class="urlText alert alert-light" v-on:click="forceSelection">{{seFieldsJSON}}</div>
+                        <h4>StreamsElements Embed Code (Data)</h4>
+                        <div class="urlText alert alert-light" v-on:click="forceSelection">{{seDataJSON}}</div>
                     </div>
                 </template>
                 <template v-slot:displayBox>
