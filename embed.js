@@ -22,7 +22,7 @@ if('_core_.widget_type' in fields) {
     delete fields['_core_.widget_type'];
 }
 if('_core_.service_type' in fields) {
-    config.widgetType = fields['_core_.service_type'];
+    config.serviceType = fields['_core_.service_type'];
     delete fields['_core_.service_type'];
 }
 if('_core_.dataScope' in fields) {
