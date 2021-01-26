@@ -15,6 +15,26 @@ export default class BasicDisplay extends Module {
     constructor(config=defaultConfig) {
         super(Module.mixin(defaultConfig, config));
     }
+
+    populateSEFields() {
+        let self=this;
+        Object.assign(this.streamElementsFields, 
+            {
+                title: {
+                    get destination(){return self.config.displayTitle;},
+                    set destination(v){self.config.displayTitle = v;},
+                    settings: {
+                        type: 'text',
+                        label: 'Title'
+                        //this value will be randomly generated on the config side
+                    }
+                }
+            }
+        );
+
+         //todo: consider if this should become static in some way and have the result passed as a constructor? it'll be easier to do it this way for now but the alternative would be more performant.
+    }
+
     generateBoxes() {
         super.generateBoxes();
 
