@@ -29,6 +29,10 @@ if('_core_.dataScope' in Object.keys(fields)) {
     config.moduleId = fields['_core_.dataScope'];
     delete fields['_core_.dataScope'];
 }
+if('_core_.theme' in Object.keys(fields)) {
+    config.theme = fields['_core_.theme'];
+    delete fields['_core_.theme'];
+}
 
 let MixedClass = generateMixinWidget(config.widgetType, config.serviceType);
 let activeService = new serviceTypes[config.serviceType].constructor(config.serviceConfig);
