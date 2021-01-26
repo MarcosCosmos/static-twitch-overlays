@@ -121,14 +121,14 @@ let doWork = async () => {
                 },
                 watch: {
                     widgetInfo: {
-                        async handler () {
-                            eachWidget.save(await eachWidget.requestDataLock());
+                        handler () {
+                            eachWidget.requestSave();
                         },
                         deep: true
                     },
                     serviceInfo: {
-                        async handler() {
-                            eachService.save(await eachService.requestDataLock());
+                        handler() {
+                            eachService.requestSave();
                         },
                         deep: true
                     },
@@ -190,7 +190,7 @@ let doWork = async () => {
             };
             mixedComponents[`${eachWidgetType}_${eachServiceType}`] = eachComponent;
         }
-    };
+    }
 
     let perWidgetComponent = {
         data: function(){return {

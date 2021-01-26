@@ -112,8 +112,7 @@ class Logger extends Module {
     //     localStorage.setItem(`${this.config.moduleId}+Even`, JSON.stringify(this.info.events));
     // }
 
-    async log(event) {
-        let lock = await this.requestDataLock();
+    log(event) {
         event.id = this.info.lastEventId;
         this.info.events.unshift(event);
         if(this.lastEventId === Number.MAX_SAFE_INTEGER) {
@@ -124,7 +123,7 @@ class Logger extends Module {
         if(this.info.events.length > 1000) {
             this.info.events = this.info.events.slice(0, 1000);
         }
-        this.save(lock);
+        return this.requestSave();
     }
 }
 

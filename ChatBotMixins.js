@@ -90,23 +90,21 @@ async function processEventAccumulation(event, regex) {
                 amount = parseFloat(payload);
             }
         }
-        let lock = await this.requestDataLock();
         let result;
         if(increment) {
             await this.increment();
             result = `${this.config.displayTitle} is now: ${this.info.currentValue}`;
-            await this.save(lock); //save forcedly releases the lock, so it can only be used once each time the lock is grabbed.
+            this.requestSave(); //save forcedly releases the lock, so it can only be used once each time the lock is grabbed.
         } else if(!isNaN(amount) && isFinite(amount)) {
             if (relative) {
-                await this.add(amount);
+                this.add(amount);
             } else {
-                await this.set(amount);
+                this.set(amount);
             }
             result = `${this.config.displayTitle} is now: ${this.info.currentValue}`;
-            await this.save(lock); //save forcedly releases the lock, so it can only be used once each time the lock is grabbed.
+            this.requestSave(); //save forcedly releases the lock, so it can only be used once each time the lock is grabbed.
         } else {
             result = `${this.config.displayTitle} is now: ${this.info.currentValue}`;
-            lock.release();
         }
         return result;
     }
@@ -145,21 +143,19 @@ async function processEventTimer(event, regex) {
             }
         }
         
-        let lock = await this.requestDataLock();
         let result;
         if(!isNaN(amount) && isFinite(amount)) {
             this.timeToNowIfNull();
             if (relative) {
-                await this.add(amount);
+                this.add(amount);
             } else {
                 this.info.snapshotTime = new Date(Date.now());
                 this.setReferenceTime(amount, this.info.snapshotTime.valueOf());
             }
+            this.updateCurrentGap();
             result = `${this.config.displayTitle} is now: ${this.getHours()}:${this.getMinutes()}:${this.getSeconds()} (${this.info.isPaused ? 'paused' : 'and counting'})`;
-            await this.save(lock);
         } else {
             result = `${this.config.displayTitle} is now: ${this.getHours()}:${this.getMinutes()}:${this.getSeconds()} (${this.info.isPaused ? 'paused' : 'and counting'})`;
-            lock.release();
         }
         return result;
     }
@@ -174,13 +170,12 @@ async function processEventStreamEvent(event, regex) {
             payload = event.message.substr(match.index + match[0].length);
         }
         
-        let lock = await this.requestDataLock();
         this.info.currentEvent = {
             by: event.tags.displayName,
             detail: payload,
             raw: event
         };
-        await this.save(lock);
+        this.requestSave();
         return `Message recieved! @${event.tags.displayName}`;
     }
     return false;

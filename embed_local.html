@@ -10,7 +10,7 @@ if(document.location.search.length > 0) {
 } else {
     config = {};
 }
-initialise(config);
+initialise(config).then(activeWidget => window.activeWidget = activeWidget);
 </script>
 </head>
 <body>

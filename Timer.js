@@ -10,7 +10,9 @@ let defaultConfig;
         defaultData: {
             referenceTime: null, //in up timers, this is the time the timer was started, in down timers it's some future moment being counted towards
             snapshotTime: null,
+            pausedGapMs: 0,
             timerMode: 'down',
+            stopAtZero: true,
             isPaused: true,
             finishSeen: false
         }
@@ -53,11 +55,11 @@ export default class Timer extends BasicDisplay {
         }
         super(config);
         this.logger = new Logger({moduleId: `${this.config.moduleId}_log`});
-        this.updaterInterval = null;
+        this.updateInterval = null;
         
         //a utility var used internally to reduce repetitive computation, but never saved to storage since it would almost-never stay relevant/accurate
         this.currentGapMs = 0;
-        this.withDataLock(()=>this.updateCurrentGap());
+        this.updateCurrentGap(); //initial values before the data is actually loaded (works, because re-entrant?)
     }
 
     getHours() {
@@ -118,6 +120,10 @@ export default class Timer extends BasicDisplay {
                     <label :for="core.config.moduleId + 'ModeDown'">
                         Count Down
                     </label>
+                    <input name="stopAtZero" :id="core.config.moduleId + 'StopAtZero'" type="checkbox" v-model="core.info.stopAtZero"/>
+                    <label :for="core.config.moduleId + 'StopAtZero'">
+                        Stop timer at zero?
+                    </label>
                     <br/>
                     <div>
                         <label :for="core.config.prefix + 'dummyHours'">
@@ -151,9 +157,8 @@ export default class Timer extends BasicDisplay {
                         return self.info.timerMode;
                     },
                     async set(newValue) {
-                        let lock = await self.requestDataLock();
                         self.setMode(newValue);
-                        await self.save(lock);
+                        self.requestSave();
                     }
                 },
                 dummyHours: {
@@ -205,11 +210,10 @@ export default class Timer extends BasicDisplay {
                 unpause() {
                     self.unpause();
                 },
-                async setTimeGap(hours, minutes, seconds) {
-                    let lock = await self.requestDataLock();
+                setTimeGap(hours, minutes, seconds) {
                     self.timeToNowIfNull();
-                    self.setReferenceTime(self.computeMs(hours, minutes, seconds), self.info.snapshotTime.valueOf());
-                    await self.save(lock);
+                    self.setReferenceTime(self.computeMs(hours, minutes, seconds), this.core.info.snapshotTime.valueOf());
+                    self.requestSave();
                 },
                 updateGapParts() {
                     this.hours = hoursIn(self.currentGapMs);
@@ -259,7 +263,7 @@ export default class Timer extends BasicDisplay {
      * @param {*} relativeTo defaults to zero (the base reference epoch for js time)
      * Note: does not save/get the data lock
      */
-    async setReferenceTime(gap, relativeTo=0) {
+    setReferenceTime(gap, relativeTo=0) {
         switch(this.info.timerMode) {
             case 'up':
                 //set the new reference time to however long the duration was when paused, but in the past.
@@ -303,28 +307,37 @@ export default class Timer extends BasicDisplay {
         this.updateCurrentGap();
     }
 
+    /**
+     * The asyncness of this method allows the caller to wait for the pause-state-change to be recorded in storage.
+     * The return value, on resolve, is true if the timer was previously unpaused, and false otherwise.
+     */
     async pause() {
         this.stop();
-        let lock = await this.requestDataLock();
         if(!this.info.isPaused) {
-            this.updateSnapshot();
             this.info.isPaused = true;
-            await this.save(lock);
+            this.info.pausedGapMs = this.currentGapMs;
+            this.info.referenceTime = null;
+            await this.requestSave();
+            return true;
         } else {
-            lock.release();
+            return false;
         }
     }
-
+    /**
+     * The asyncness of this method allows the caller to wait for the pause-state-change to be recorded in storage.
+     * The return value, on resolve, is true if the timer was previously paused, and false otherwise.
+     */
     async unpause() {
-        let lock = await this.requestDataLock();
         if(this.info.isPaused) {
-            this.timeToNowIfNull();
-            this.setReferenceTime(this.currentGapMs, Date.now());
+            this.info.snapshotTime = new Date(Date.now());
+            this.setReferenceTime(this.currentGapMs, this.info.snapshotTime.valueOf());
             this.info.isPaused = false;
-            await this.save(lock);
+            this.info.pausedGapMs = 0;
             this.start();
+            await this.requestSave();
+            return true;
         } else {
-            lock.release();
+            return false;
         }
     }
 
@@ -339,9 +352,15 @@ export default class Timer extends BasicDisplay {
         if(!this.info.isPaused && this.updateInterval === null) {
             this.updateInterval = setInterval(async () => {
                 this.updateSnapshot();
-                let stateChanged = await this.checkFinished();
-                if(stateChanged) {
-                    await this.pause();
+                if(this.checkFinished() && this.info.stopAtZero) {
+                    if(this.info.finishSeen) {
+                        this.stop();
+                        this.setReferenceTime(0, this.info.snapshotTime.valueOf());
+                        this.updateCurrentGap();
+                        this.pause();
+                    } else {
+                        this.unpause();
+                    }
                 }
             }, 1000);
         }
@@ -360,33 +379,36 @@ export default class Timer extends BasicDisplay {
 
     /**
      * Only timers counters down can 'finish', and the timer must become non-zero again to unset it
-     * Returns whether or not the finished state changed.
+     * returns true if a save is warranted.
      */
-    async checkFinished() {
-        let oldSeen = this.info.finishSeen;
+    checkFinished() {
         if(!this.info.finishSeen) {
             if(this.currentGapMs <= 0) {
-                await this.logger.log({
+                this.logger.log({
                     name: `Timer (${this.config.displayTitle}) Finished!`,
                     time: new Date(this.info.snapshotTime.valueOf()+this.currentGapMs)
                 });
                 this.info.finishSeen = true;
+                return true;
             }
         } else if(this.currentGapMs > 0) {
             //if we've already finished, but are no longer finished, then clear the flag to allow for finishing again
             this.info.finishSeen = false;
+            return true;
         }
-        return oldSeen !== this.info.finishSeen;
+        return false;
     }
 
     async loadInfo(lock) {
         let oldPauseState = this.info.isPaused;
         await super.loadInfo(lock);
-        if(this.info.referenceTime != null) {
+        this.info.snapshotTime = new Date(Date.now());
+        if(this.info.isPaused) {
+            this.currentGapMs = this.info.pausedGapMs;
+            this.setReferenceTime(this.currentGapMs, this.info.snapshotTime.valueOf());
+        } else {
             this.info.referenceTime = new Date(Date.parse(this.info.referenceTime));
-        }
-        if(this.info.snapshotTime != null) {
-            this.info.snapshotTime = new Date(Date.parse(this.info.snapshotTime));
+            this.timeToNowIfNull();
         }
         this.updateCurrentGap();
         //start/stop the timer if the pause state changed; Note: this is very different to pause/unpause as these commands change the reference timestamps etc and should not be repeated redundantly (this would change the data).
@@ -403,83 +425,7 @@ export default class Timer extends BasicDisplay {
         await this.pause();
         await super.eraseData();
         await this.logger.eraseData();
+        this.timeToNowIfNull();
         this.updateCurrentGap();
     }
 }
-
-// async function updateTimerDisplay() {
-//     let timeNow = Date.now();
-//     let timerEndMs = settings.startTime.valueOf() + totalTimeMs;
-//     let diff = timerEndMs - timeNow.valueOf();
-//     //if we're doing the last check and we're low, make sure we have up to date dono information before we call it, otherwise give up; A single-depth recursive call is easy for this
-//     if(diff < 0 && !haveDoneLastCheck) {
-//         haveDoneLastCheck = true;
-//         await checkCampaign();
-//         await updateTimerDisplay();
-//     } else {
-//         haveDoneLastCheck = false;
-//         let totalSeconds = diff/1000;
-        
-//         let hours = Math.floor(totalSeconds/(60*60));
-        
-//         totalSeconds -= hours*(60*60);
-
-//         let minutes = Math.floor(totalSeconds/60);
-
-//         totalSeconds -= minutes*60;
-
-//         let seconds = totalSeconds > 0 ? Math.floor(totalSeconds) : Math.ceil(totalSeconds); //if the time is non-zero show at least 1 second
-
-//         document.getElementById('timerHours').innerText = hours;
-//         document.getElementById('timerMinutes').innerText = minutes;
-//         document.getElementById('timerSeconds').innerText = seconds;
-//         updateInfoDisplay();
-
-//         if(diff < 0) {
-//             stopTimer();
-//         }
-//     }
-// }
-
-// async function runTimer() {
-//     if(currentSecondInterval === null) {
-//         haveDoneLastCheck = false; //always allow one last check when the timer runs out
-//         checkCampaign(); //do the first update immediately;
-//         updateTimerDisplay();
-//         currentSecondInterval = setInterval(updateTimerDisplay, 1000);
-//         currentUpdateInterval = setInterval(checkCampaign, 60000); //once per minute.
-        
-//     }
-// }
-
-// async function startTimer() {
-//     document.getElementById('btnStart').disabled = true;
-//     settings.running = true;
-//     settings.startTime = new Date(Date.now());
-//     localStorage.setItem('startTime', settings.startTime.toJSON());
-//     localStorage.setItem('running', settings.running);
-//     document.getElementById('startTime').innerText = settings.startTime;
-//     try {
-//         await runTimer();
-//     } catch(e) {
-//         console.err(e);
-//     }
-//     document.getElementById('btnStop').disabled = false;
-// }
-
-// function stopTimer() {
-//     document.getElementById('btnStop').disabled = true;
-//     clearInterval(currentSecondInterval);
-//     currentSecondInterval = null;
-//     clearInterval(currentUpdateInterval);
-//     currentUpdateInterval = null;
-//     settings.running = false;
-//     // settings.startTime = null;
-//     localStorage.setItem('running', settings.running);
-//     // localStorage.setItem('startTime', settings.startTime);
-//     // document.getElementById('startTime').innerText = settings.startTime;
-//     for(let each of ['timerHours', 'timerMinutes', 'timerSeconds']) {
-//         document.getElementById(each).innerText = 0;
-//     }
-//     document.getElementById('btnStart').disabled = false;
-// }

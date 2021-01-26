@@ -1,8 +1,10 @@
 
+import Lock from './Lock.js';
 let defaultConfig;
 {
     defaultConfig = {
         moduleId: 'exampleWidget', //note: displayable, numeric moduleIdes should be managable via css
+        saveCooldown: 10000, //save no more than once every 10 seconds
         defaultData: {},
     };
 }
@@ -40,17 +42,19 @@ class ModuleBase {
     constructor(config={}) {
         this.config = Module.mixin(defaultConfig, config);
         this.info = Module.mixin({}, this.config.defaultData);
-        this.dataPromise = Promise.resolve();
-        
-        this.withDataLock(async (lock) => {
-            await this.loadInfo(lock);
-            this.componentLists = {};
+        this.dataLock = Lock.build(`Data-lock (${this.config.moduleId})`); //todo: consider if this second datalock is even neccessary anymore? it doesn't hurt, and would neccessary outside of JS, but still.
+        this.saveLock = Lock.build(`Save-lock (${this.config.moduleId})`);
+        this.isSavePending = false;
+        this.dataLock = this.dataLock
+            .then(() => this.loadInfo())
+            .then(() => {
+                this.componentLists = {};
 
-            this.boxes = {};
+                this.boxes = {};
 
-            for(const each of ['display', 'info', 'settings', 'controls']) {
-                this.componentLists[each] = [];
-            }
+                for(const each of ['display', 'info', 'settings', 'controls']) {
+                    this.componentLists[each] = [];
+                }
 
             /*
              * format {name: {destination: this.config.something, settings: {sePropName: value,}},}
@@ -63,15 +67,10 @@ class ModuleBase {
                 info: this.info
             };
 
-            this.coreDataGetter = function() {
-                return coreData;
-            }
-
-            // //add a listener for external localStorage changes
-            // window.addEventListener('storage', async () => {
-            //     await this.withDataLock(this.loadInfo.bind(this));
-            // });
-        });
+                this.coreDataGetter = function() {
+                    return coreData;
+                }
+            });
     }
 
     /**
@@ -148,7 +147,7 @@ class ModuleBase {
             `,
             methods: {
                 async eraseData() {
-                    self.eraseData(await self.requestDataLock());
+                    self.eraseData();
                 }
             }
         });
@@ -156,9 +155,11 @@ class ModuleBase {
 
     /**
      * Shouldn't be called in the constructor chain since it essentially shoe-horns lists of components into object-maps for later use
+     * @returns a promise indicating it's completion
      */
     async finalizeBoxes() {
-        await this.withDataLock((lock) => {this.generateBoxes();
+        this.dataLock = this.dataLock.then(() => {
+            this.generateBoxes();
             for(const each of ['display', 'info', 'settings', 'controls']) {
                 let eachComponents = this.componentLists[each];
                 let self=this;
@@ -181,19 +182,10 @@ class ModuleBase {
             }
             this.populateSEFields();
         });
-
+        await this.dataLock;
     }
 
-    // async requestInfoLock() {
-    //     let resolver;
-    //     let existingPromise = this.infoLock;
-    //     this.infoLock = new Promise((resolve) => resolver=resolve);
-    //     await existingPromise;
-    //     return resolver;
-    // }
-
-    async eraseData(lock) {
-        lock.check();
+    async eraseData() {
         let recursingAssign = (destination, source) => {
             for(const eachKey of Object.keys(source)) {
                 if(destination[eachKey] === null || (!(source[eachKey] instanceof Object) || source[eachKey] instanceof Array || source[eachKey] instanceof Date)) {
@@ -204,47 +196,57 @@ class ModuleBase {
             }
         };
         recursingAssign(this.info, this.config.defaultData);
-        await this.save(lock);
+        return await this.requestSave();
+    }
+    
+    loadInfo() {
+       return this.getItems(this.info);
     }
 
-    async loadInfo(lock) {
-        await this.getItems(lock, this.info);
+
+
+    /**
+     * note: you can only have the lock until one call to save; which always releases the lock.
+     * this is backward compatibility for requestSave(), but also for lease checking
+     * 
+     * Although it is not itself async, this method calls an async method and returns it's promise.
+     */
+    save(lease) {
+        //only saves if the lease is valid, as otherwise release throws.
+        dataLease.release();
+        return this.requestSave();
     }
 
-
-
-    //note: you can only have the lock until one call to save; which always releases the lock.
-    async save(lock) {
-        await this.storeItems(lock, this.info);
-        lock.release();
+    /**
+     * Throttles the save rate according to config.saveCooldown
+     * An external user can 
+     * @param {*} dataLease 
+     * @returns a promise that resolves once the save completed (but before it's cooldown ends).
+     * Important: If an error occurs, it is the savelock that rejects (so you should call this aynchronously, attach a catch to the savelock, and then await the resolution of this if you wish to handle those errors).
+     * This means that the returned promise is a glorified callback, but it also importantly highlights that handling failed saves must return the module to a valid state for other callers, not just cancel the requested action.
+     * If the error is not handled, then no more saves can be made
+     */
+    async requestSave() {
+        if(!this.isSavePending) {
+            this.isSavePending = true;
+            let [promise, nextLock] = this.saveLock.lease();
+            this.saveLock = nextLock;
+            let saveLease = await promise;
+            await this.dataLock; //only save if the datalock is in a resolved state; but also because we are re-entrant, we have no need to prevent data from being changed between starting the store and having the store finish.
+            try {
+                this.storeItems(this.info);
+                this.isSavePending = false;
+                setTimeout(() => {
+                    saveLease.release();
+                }, this.config.saveCooldown);  
+                return true;
+            } catch(e) {
+                saveLease.break(e);
+            }
+        } else {
+            return false;
+        }
     }
-
-    // /**
-    //  * replaces existing values with those in local storage, where it exists
-    //  * @param Object destination
-    //  * Note: this method can only safely deal with JSON-compatible data
-    //  */
-    // async getItems(lock, destination) {
-    //     lock.check();
-    //     for(let eachName in destination) {
-    //         let tmp = await this.storage.get(`${this.config.moduleId}${eachName}`); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
-    //         if(tmp !== null) {
-    //             destination[eachName] = JSON.parse(tmp);
-    //         }
-    //     }
-    // }
-
-    // /**
-    //  * 
-    //  * @param Object destination
-    //  * Note: this method can only safely deal with JSON-compatible data
-    //  */
-    // async storeItems(lock, destination) {
-    //     lock.check();
-    //     for(let eachName in destination) {
-    //         await this.storage.set(`${this.config.moduleId}${eachName}`, JSON.stringify(destination[eachName])); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
-    //     }
-    // }
 
     /**
      * mainly used for services, but also for timers, etc
@@ -258,40 +260,6 @@ class ModuleBase {
      */
     stop() {
     }
-
-    async requestDataLock() {
-        let result = { 
-            owned: true
-        };
-        result.check = () => {
-            if(!result.owned) {
-                throw new Error("Cannot release the lock, as this hold was already released.");
-            }
-        }; //extra fast-fail
-        let existingLock = this.dataPromise;
-        this.dataPromise = new Promise((resolve) => result.release = () => {
-            result.check();
-            result.owned = false;
-            resolve();
-        });
-        await existingLock;
-        setTimeout(() => {
-            if(result.owned) {
-                throw "panic, took too long to resolve!";
-            } else {
-                console.log("ok cool");
-            }
-        }, 2000);
-        return result;
-    }
-    
-    async withDataLock(work) {
-        let lock = await this.requestDataLock();
-        await work(lock);
-        if(lock.owned) {
-            lock.release();
-        }
-    }
 }
 
 class LocalStorageModule extends ModuleBase {
@@ -300,8 +268,7 @@ class LocalStorageModule extends ModuleBase {
      * @param Object destination
      * Note: this method can only safely deal with JSON-compatible data
      */
-    async getItems(lock, destination) {
-        lock.check();
+    async getItems(destination) {
         for(let eachName in destination) {
             let tmp = await localStorage.getItem(`${this.config.moduleId}${eachName}`); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
             if(typeof tmp !== 'undefined' && tmp !== null) {
@@ -315,8 +282,7 @@ class LocalStorageModule extends ModuleBase {
      * @param Object destination
      * Note: this method can only safely deal with JSON-compatible data
      */
-    async storeItems(lock, destination) {
-        lock.check();
+    async storeItems(destination) {
         for(let eachName in destination) {
             await localStorage.setItem(`${this.config.moduleId}${eachName}`, JSON.stringify(destination[eachName])); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
         }
@@ -329,8 +295,7 @@ class SEStorageModule extends ModuleBase {
      * @param Object destination
      * Note: this method can only safely deal with JSON-compatible data
      */
-    async getItems(lock, destination) {
-        lock.check();
+    async getItems(destination) {
         let tmp = await SE_API.store.get(`${this.config.moduleId}.info`) || null;
         if(tmp != null) {
             for(let eachName in destination) {
@@ -346,8 +311,7 @@ class SEStorageModule extends ModuleBase {
      * @param Object destination
      * Note: this method can only safely deal with JSON-compatible data
      */
-    async storeItems(lock, destination) {
-        lock.check();
+    async storeItems(destination) {
         let payload = {};
         for(let eachName in destination) {
             let eachTmp = destination[eachName];
