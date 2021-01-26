@@ -12,7 +12,7 @@ function generateBoxes() {
 
 function generateGoalBoxes() {
     (generateBoxes.bind(this))();
-    let targetSettingsBox = this.componentLists.settings[this.componentLists.settings.length-1];
+    let targetSettingsBox = this.service.componentLists.settings[this.service.componentLists.settings.length-1];
     targetSettingsBox.watch = targetSettingsBox.watch || {};
     targetSettingsBox.watch['config.eventType'] = function(newValue) {
         switch(newValue) {
@@ -31,7 +31,7 @@ function generateGoalBoxes() {
 
 function generateStreamEventBoxes() {
     (generateBoxes.bind(this))();
-    let targetSettingsBox = this.componentLists.settings[this.componentLists.settings.length-1];
+    let targetSettingsBox = this.service.componentLists.settings[this.service.componentLists.settings.length-1];
     targetSettingsBox.watch = targetSettingsBox.watch || {};
     targetSettingsBox.watch['config.eventType'] = function(newValue) {
         switch(newValue) {
@@ -177,8 +177,8 @@ function accumulationListener() {
     this.service.addListener(
         async event => {
             let isCorrectType;
-            isCorrectType = event.details.type === this.config.eventType;
-            if(event.details.for === this.config.eventPlatform && isCorrectType) {
+            isCorrectType = event.details.type === this.service.config.eventType;
+            if(event.details.for === this.service.config.eventPlatform && isCorrectType) {
                 let amount = event.details.message.amount;
                 switch(event.details.type) {
                     case 'superchat':
@@ -217,8 +217,8 @@ function streamEventListener() {
     this.service.addListener(
         async event => {
             let isCorrectType;
-            isCorrectType = event.details.type === this.config.eventType;
-            if(event.details.for === this.config.eventPlatform && isCorrectType) {
+            isCorrectType = event.details.type === this.service.config.eventType;
+            if(event.details.for === this.service.config.eventPlatform && isCorrectType) {
                 let lock = await this.requestDataLock();
                 switch(event.details.type) {
                     case 'superchat':
@@ -267,8 +267,8 @@ function timerListener() {
     this.service.addListener(
         async event => {
             let isCorrectType;
-            isCorrectType = event.details.type === this.config.eventType;
-            if(event.details.for === this.config.eventPlatform && isCorrectType) {
+            isCorrectType = event.details.type === this.service.config.eventType;
+            if(event.details.for === this.service.config.eventPlatform && isCorrectType) {
                 let amount = event.details.message.amount;
                 switch(event.details.type) {
                     case 'superchat':
