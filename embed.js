@@ -40,7 +40,7 @@ await activeWidget.finalizeBoxes();
 for(let eachCompKey of Object.keys(fields)) {
     let eachCategory, eachInnerKey;
     {
-        let parts = eachCompKey.split('.', 1);
+        let parts = eachCompKey.split('.', 2);
         if(parts.length == 2) {
             eachCategory = parts[0];
             eachInnerKey = parts[1];
