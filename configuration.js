@@ -331,6 +331,11 @@ let doWork = async () => {
                     label: 'Widget ID (Widgets with the same ID will share and display the same data)'
                 };
                 dataResult['_core_.dataScope'] = this.moduleId;
+                fieldsResult['_core_.theme'] = {
+                    type: 'text',
+                    label: 'Theme'
+                };
+                dataResult['_core_.theme'] = this.theme;
                 
                 this.seFieldsJSON = JSON.stringify(fieldsResult, null, 4);
                 this.seDataJSON = JSON.stringify(dataResult, null, 4);

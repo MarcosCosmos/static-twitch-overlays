@@ -17,17 +17,21 @@ export default async (config, fields={}, start=true) => {
 config = Module.mixin(defaultConfig, config);
 
 //use se field overrides to set the widget and service types.
-if('_core_.widget_type' in Object.keys(fields)) {
+if('_core_.widget_type' in fields) {
     config.widgetType = fields['_core_.widget_type'];
     delete fields['_core_.widget_type'];
 }
-if('_core_.service_type' in Object.keys(fields)) {
+if('_core_.service_type' in fields) {
     config.widgetType = fields['_core_.service_type'];
     delete fields['_core_.service_type'];
 }
-if('_core_.dataScope' in Object.keys(fields)) {
+if('_core_.dataScope' in fields) {
     config.moduleId = fields['_core_.dataScope'];
     delete fields['_core_.dataScope'];
+}
+if('_core_.theme' in fields) {
+    config.theme = fields['_core_.theme'];
+    delete fields['_core_.theme'];
 }
 
 let MixedClass = generateMixinWidget(config.widgetType, config.serviceType);
