@@ -215,7 +215,6 @@ function streamEventListener() {
             let isCorrectType;
             isCorrectType = event.details.type === this.service.config.eventType;
             if(event.details.for === this.service.config.eventPlatform && isCorrectType) {
-                let lock = await this.requestDataLock();
                 switch(event.details.type) {
                     case 'superchat':
                         //superchats are measured in micros of a unit, so divide by 1000000 before continueing
