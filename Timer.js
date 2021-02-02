@@ -37,6 +37,10 @@ function secondsIn(ms) {
 
 //todo: consider adding global options for overriding config via chat?
 
+//todo: fields; (include reference time, some of the fields that are currently data.)
+
+//todo: only save on start/stop?
+
 /**
  * Note this basic/base goal doesn't include an updating mechanism in and of itself other than manually through settings, and should be extended with subclasses that interact with other modules (such a streamlabs socket.io module) to listen for updates
  */
@@ -363,7 +367,7 @@ export default class Timer extends BasicDisplay {
     }
 
     setMode(targetMode) {
-        if(targetMode != this.info.timerMode) {
+        if(targetMode !== this.info.timerMode) {
            //get the gap based on the current mode, then switch modes, then set the gap again to get the same value on the timer despite moving in the opposite direction?
            this.stop();
            this.timeToNowIfNull();

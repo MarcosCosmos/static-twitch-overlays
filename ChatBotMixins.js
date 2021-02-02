@@ -1,69 +1,72 @@
 const defaultConfig = {
-    commandPrefixes: ''
+    // commandPrefixes: ''
 };
 
 function generateBoxes(processor) {
-    this.componentLists.settings.push({
-        data: this.coreDataGetter,
-        template: `
-            <form action="" onsubmit="return false">
-                <label :for="config.moduleId + 'commandPrefixes'">
-                    Command(s) to listen for (aliases are comma seperated):
-                </label>
-                <input name="commandPrefixes" :id="config.moduleId + 'commandPrefixes'" v-model="config.commandPrefixes"/>
-            </form>
-        `,
-    });
-    const self = this;
-    processor = processor.bind(this);
-    // let regex = (makeRegex.bind(this))();
-    this.componentLists.controls.push({
-        data(){return {
-            core: self.coreDataGetter(),
-            demoResponse: ' ',
-            demoCommand: ''
-        }},
-        computed: {
-            regex() {
-                let prefixes = this.core.config.commandPrefixes.split(',').map(each => each.trim());
-                let regex = new RegExp(`^(${prefixes.join('|')})`);
-                return regex;
-            }
-        },
-        template: `
-            <form action="" @submit.prevent="sampleCommand">
-                <label :for="core.config.moduleId + 'DemoCommand'">
-                    Enter Demo Command:
-                </label>
-                <input name="demoCommand" :id="core.config.moduleId + 'DemoCommand'" v-model="demoCommand"/>
-                <button type="submit">Send</button>
-                <br/>
-                <strong>Response Message:</strong>
-                <span>{{demoResponse}}</span>
-                <div class="alert alert-primary">
-                    Format: <em><strong>command</strong></em> to add 1, or <em><strong>command</strong> amount</em> to add <em>amount</em>, <em><strong>command</strong> -amount</em> to subtract <em>amount</em>, or <em><strong>command</strong> =amount</em> to set the value to exactly <em>amount</em>.
-                </div>
-            </form>
-        `,
-        methods: {
-            async sampleCommand(event) {
-                let response = await processor(
-                    {
-                        message: this.demoCommand,
-                        tags: {
-                            displayName: 'Username'
-                        }
-                    },
-                    this.regex
-                ) || '';
-                this.demoResponse = response;
-            }
-        }
-    });
+    // this.componentLists.settings.push({
+    //     data: this.coreDataGetter,
+    //     template: `
+    //         <form action="" onsubmit="return false">
+    //             <label :for="config.moduleId + 'commandPrefixes'">
+    //                 Command(s) to listen for (aliases are comma seperated):
+    //             </label>
+    //             <input name="commandPrefixes" :id="config.moduleId + 'commandPrefixes'" v-model="config.commandPrefixes"/>
+    //         </form>
+    //     `,
+    // });
+    // const self = this;
+    // processor = processor.bind(this);
+    // // let regex = (makeRegex.bind(this))();
+    // this.componentLists.controls.push({
+    //     data(){return {
+    //         core: self.coreDataGetter(),
+    //         demoResponse: ' ',
+    //         demoCommand: ''
+    //     }},
+    //     computed: {
+    //         regex() {
+    //             let prefixes = this.core.config.commandPrefixes.split(',').map(each => each.trim());
+    //             let regex = new RegExp(`^(${prefixes.join('|')})`);
+    //             return regex;
+    //         }
+    //     },
+    //     template: `
+    //         <form action="" @submit.prevent="sampleCommand">
+    //             <label :for="core.config.moduleId + 'DemoCommand'">
+    //                 Enter Demo Command:
+    //             </label>
+    //             <input name="demoCommand" :id="core.config.moduleId + 'DemoCommand'" v-model="demoCommand"/>
+    //             <button type="submit">Send</button>
+    //             <br/>
+    //             <strong>Response Message:</strong>
+    //             <span>{{demoResponse}}</span>
+    //             <div class="alert alert-primary">
+    //                 Format: <em><strong>command</strong></em> to add 1, or <em><strong>command</strong> amount</em> to add <em>amount</em>, <em><strong>command</strong> -amount</em> to subtract <em>amount</em>, or <em><strong>command</strong> =amount</em> to set the value to exactly <em>amount</em>.
+    //             </div>
+    //         </form>
+    //     `,
+    //     methods: {
+    //         async sampleCommand(event) {
+    //             let response = await processor(
+    //                 {
+    //                     message: this.demoCommand,
+    //                     tags: {
+    //                         displayName: 'Username'
+    //                     }
+    //                 },
+    //                 this.regex
+    //             ) || '';
+    //             this.demoResponse = response;
+    //         }
+    //     }
+    // });
+}
+
+function generateSEFields() {
 }
 
 function makeRegex() {
-    let prefixes = this.config.commandPrefixes.split(',').map(each => each.trim());
+    let prefixes = this.service.config.commandPrefixes.split(',').map(each => each.trim());
     let regex = new RegExp(`^(${prefixes.join('|')})( +|$)`);
     return regex;
 }
@@ -225,21 +228,25 @@ export default {
     goal: {
         defaultConfig,
         generateBoxes(){(generateBoxes.bind(this))(processEventAccumulation)},
+        generateSEFields: generateSEFields,
         generateListener(){(parameterisedListener.bind(this))(processEventAccumulation)}
     },
     counter: {
         defaultConfig,
         generateBoxes(){(generateBoxes.bind(this))(processEventAccumulation)},
+        generateSEFields: generateSEFields,
         generateListener(){(parameterisedListener.bind(this))(processEventAccumulation)}
     },
     streamEvent: {
         defaultConfig,
         generateBoxes(){(generateBoxes.bind(this))(processEventStreamEvent)},
+        generateSEFields: generateSEFields,
         generateListener(){(parameterisedListener.bind(this))(processEventStreamEvent)}
     },
     timer: {
         defaultConfig,
         generateBoxes(){(generateBoxes.bind(this))(processEventTimer)},
+        generateSEFields: generateSEFields,
         generateListener(){(parameterisedListener.bind(this))(processEventTimer)}
     }
 };

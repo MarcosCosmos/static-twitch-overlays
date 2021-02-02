@@ -4,7 +4,6 @@ import Module from './Module.js';
         //ALSO TODO: only *display* recent events
 
 const defaultConfig = {
-    moduleId: 'log',
     expectRead: false, //whether or not to maintain a queue (pseudo-queue) of unread events for an alert; Actually, todo: use a reader count and a has-read count to solve for multiple alerts?(?)
     defaultData: {events: [], lastEventId: 0},
 };
@@ -15,8 +14,12 @@ const defaultConfig = {
 
 //todo: may be use this as a basis for alerts or *in* alerts?; Alerts would have the option of replaying the event within it's controls, so it kind of makes sense to display differently
 class Logger extends Module {
-    constructor(config={}) {
-        super(Module.mixin(defaultConfig, config));
+    constructor(parentScopeId, config={}) {
+        super((()=>{
+            let theConfig = Module.mixin(defaultConfig, config);
+            theConfig.moduleId = `${parentScopeId}_log`;
+            return theConfig;
+        })());
     }
 
     // generateDisplayBox() {

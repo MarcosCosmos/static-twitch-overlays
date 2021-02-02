@@ -6,7 +6,6 @@ const defaultConfigTimer = {
 };
 
 function generateBoxes() {
-    // super.generateBoxes();
     // let message = document.createElement('div');
     // message.innerText = 'There are no Tiltify-specific settings at this time.';
     // this.settingsBox.appendChild(message);
@@ -121,6 +120,26 @@ function generateTimerBoxes() {
     });
 }
 
+function generateSEFields() {
+}
+
+function generateSEFieldsTimer() {
+    let self=this;
+    Object.assign(this.streamElementsFields, 
+        {
+            extensionAmount: {
+                get destination(){return self.config.extensionAmount;},
+                set destination(v){self.config.extensionAmount = v;},
+                settings: {
+                    type: 'number',
+                    step: 1,
+                    label: 'Time to add per event/dollar/100-bits donated (seconds))'
+                }
+            }
+        }
+    );
+}
+
 function accumulationListener() {
     this.service.addListener(
         event => {
@@ -169,21 +188,25 @@ export default {
     goal: {
         defaultConfig,
         generateBoxes,
+        generateSEFields,
         generateListener: accumulationListener
     },
     counter: {
         defaultConfig,
         generateBoxes,
+        generateSEFields,
         generateListener: accumulationListener
     },
     streamEvent: {
         defaultConfig,
         generateBoxes,
+        generateSEFields,
         generateListener: streamEventListener
     },
     timer: {
         defaultConfig: defaultConfigTimer,
         generateBoxes: generateTimerBoxes,
+        generateSEFields:generateSEFieldsTimer,
         generateListener: timerListener
     }
 };

@@ -38,7 +38,7 @@ let displayMixins = {
                 <div v-for="e in ['forestroke', 'backstroke']" :class="e">
                     <div style="text-decoration: underline;">{{config.displayTitle}}</div>
                     {{info.currentEvent.by}}
-                    <template v-if="!config.nameOnly">
+                    <template v-if="typeof info.currentEvent.detail !== 'undefined'">
                         - {{info.currentEvent.detail}}
                     </template>
                 </div>

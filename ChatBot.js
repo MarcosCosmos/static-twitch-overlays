@@ -10,26 +10,107 @@ const defaultConfig = {
     channels: '',
     userLevel: 0,
     cooldown: 1000,
+    commandPrefixes: '',
     defaultData: {
         lastMessageTime: new Date(0)
     }
 };
 
 const userLevels = {
+    "everyone":0,
     "subscriber":1,
     "vip":2,
     "moderator":3,
     "broadcaster":4
 };
 
+//todo: use builtin SE chatbot (optionally) in SE overlays
 class ChatBot extends EventEmitter {
     constructor(config={}) {
         super(Module.mixin(defaultConfig, config));
         this.client = null;
     }
 
+    populateSEFields() {
+        super.populateSEFields();
+        let self=this;
+        //nothing else to do for now.
+        Object.assign(this.streamElementsFields, 
+            {
+                username: {
+                    get destination(){return self.config.username;},
+                    set destination(v){self.config.username = v;},
+                    settings: {
+                        type: 'text',
+                        label: 'Bot Username'
+                    }
+                },
+                authToken: {
+                    get destination(){return self.config.authToken;},
+                    set destination(v){self.config.authToken = v;},
+                    settings: {
+                        type: 'text',
+                        label: 'Bot OAuth Token (Twitch)'
+                    }
+                },
+                channels: {
+                    get destination(){return self.config.channels;},
+                    set destination(v){self.config.channels = v;},
+                    settings: {
+                        type: 'text',
+                        label: 'Channels (comma seperated)'
+                    }
+                },
+                userLevel: {
+                    get destination(){return self.config.userLevel;},
+                    set destination(v){self.config.userLevel = v;},
+                    settings: {
+                        type: 'dropdown',
+                        label: 'Minimum User Level (ignore users below this)',
+                        options: (()=>{
+                            let result = {};
+                            for(let each of Object.keys(userLevels)) {
+                                result[`${userLevels[each]}`] = each;
+                            }
+                        })()
+                    }
+                },
+                cooldown: {
+                    get destination(){return self.config.cooldown;},
+                    set destination(v){self.config.cooldown = v;},
+                    settings: {
+                        type: 'number',
+                        label: 'Cooldown (milliseconds, 1000ms=1s)'
+                    }
+                },
+                commands: {
+                    get destination(){return self.config.commandPrefixes;},
+                    set destination(v){self.config.commandPrefixes = v;},
+                    settings: {
+                        type: 'text',
+                        label: 'Command(s) to listen for (aliases are comma seperated)'
+                    }
+                }
+            }
+        );
+    }
+
     generateBoxes() {
         super.generateBoxes();
+        this.componentLists.settings.push({
+            data: this.coreDataGetter,
+            template: `
+                <div>
+                    <h4>Misc Settings</h4>
+                    <form action="" onsubmit="return false">
+                        <label :for="config.moduleId + 'commandPrefixes'">
+                            Command(s) to listen for (aliases are comma seperated):
+                        </label>
+                        <input name="commandPrefixes" :id="config.moduleId + 'commandPrefixes'" v-model="config.commandPrefixes"/>
+                    </form>
+                </div>
+            `,
+        });
         this.componentLists.settings.push({
             data: this.coreDataGetter,
             computed: {
@@ -66,7 +147,7 @@ class ChatBot extends EventEmitter {
                         <input name="cooldown" :id="config.moduleId + 'Cooldown'" v-model="_cooldown"/>
                         <br/>
                         <label :for="config.moduleId + 'UserLevel'">
-                            Minimum User Level (ignore commands below this):
+                            Minimum User Level (ignore users below this):
                         </label>
                         <select name="userLevel" :id="config.moduleId + 'userLevel'" v-model="config.userLevel">
                             <option value="4">Broadcaster</option>

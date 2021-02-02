@@ -71,6 +71,10 @@ function generateMixinWidget(widgetType, serviceType) {
             super.generateBoxes();
             (mixins.generateBoxes.bind(this))();
         }
+        generateSEFields() {
+            super.generateSEFields();
+            (mixins.generateSEFields.bind(this))();
+        }
     }
     
     return MixinWidget;

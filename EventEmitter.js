@@ -8,9 +8,9 @@ function Set_toJSON(key, value) {
 }
 
 const defaultConfig = {
-    defaultData: {
-        // eventsSeen: []
-    }
+    // defaultData: {
+    //     eventsSeen: []
+    // }
 };
 
 class EventEmitter extends Module {

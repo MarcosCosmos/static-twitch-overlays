@@ -1,93 +1,20 @@
 const defaultConfig =  {
-    eventType: 'donation', //https://dev.streamlabs.com/docs/socket-api <--- type/for info/list
-    eventPlatform: 'streamlabs', //https://dev.streamlabs.com/docs/socket-api <--- type/for info/list,
 };
 
 const defaultConfigTimer =  {
-    eventType: 'donation', //https://dev.streamlabs.com/docs/socket-api <--- type/for info/list
-    eventPlatform: 'streamlabs', //https://dev.streamlabs.com/docs/socket-api <--- type/for info/list,
     extensionAmount: 0
 };
 
-function generateBoxes() {
-    let self=this;
-    this.componentLists.settings.push({
-        template: `
-            <form action="" onsubmit="return false">
-                <div>
-                    <h4>Platform:</h4>
-                    <div v-for="(platform, platformId) of platforms">
-                        <input type="radio" name="eventPlatform" v-model="config.eventPlatform" :value="platformId" :id="'slEventPlatform_' + platformId"/>
-                        <label :for="'slEventPlatform_' + platformId">{{platform.title}}</label>
-                    </div>
-                </div>
-                <div>
-                    <h4>Event Type</h4>
-                    <div v-for="(eventTitle, eventId) of selectedPlatform.events">
-                        <input type="radio" name="eventType" v-model="config.eventType" :value="eventId" :id="'slEvent_' + eventId"/>
-                        <label :for="'slEvent_' + eventId">{{eventTitle}}</label>
-                    </div>
-                </div>
-            </form>
-        `,
-        data: function(){return {
-            config: self.config,
-            info: self.info,
-            platforms: {
-                streamlabs: {
-                    title: 'Streamlabs',
-                    events: {
-                        donation: 'Donation'
-                    }
-                },
-                twitch_account: {
-                    title: 'Twitch',
-                    events: {
-                        follow: 'Follow',
-                        subscription: 'Subscription',
-                        host: 'Host',
-                        bits: 'Bits',
-                        raid: 'Raid'
-                    }
-                },
-                youtube_account: {
-                    title: 'Youtube',
-                    events: {
-                        follow: 'Subscription (for notifications, like a Twitch follow)',
-                        subscription: 'Sponsership (like a Twitch subscription)',
-                        superchat: 'Superchat'
-                    }
-                },
-                mixer_account: {
-                    title: 'Mixer',
-                    events: {
-                        follow: 'Follow',
-                        subscription: 'Subscription',
-                        host: 'Host'
-                    }
-                }
-            }
-        }},
-        computed: {
-            selectedPlatform() {
-                return this.platforms[this.config.eventPlatform];
-            }
-        },
-        watch: {
-            selectedPlatform(newValue) {
-                let newOptions = Object.keys(newValue.events);
-                if(newOptions.indexOf(this.config.eventType) === -1){
-                    this.config.eventType = newOptions[0];
-                }
-            },
-        }
-    });
-}
+//todo: figure out how much of these mixins to merge into the main settings for the purpose uniformity with se-settings?
 
+function generateBoxes() {
+}
 
 function generateGoalBoxes() {
     (generateBoxes.bind(this))();
-    this.componentLists.settings[this.componentLists.settings.length-1].watch['config.eventType'] = function(newValue) {
+    let targetSettingsBox = this.service.componentLists.settings[this.service.componentLists.settings.length-1];
+    targetSettingsBox.watch = targetSettingsBox.watch || {};
+    targetSettingsBox.watch['config.eventType'] = function(newValue) {
         switch(newValue) {
             case 'donation':
             case 'superchat':
@@ -104,7 +31,9 @@ function generateGoalBoxes() {
 
 function generateStreamEventBoxes() {
     (generateBoxes.bind(this))();
-    this.componentLists.settings[this.componentLists.settings.length-1].watch['config.eventType'] = function(newValue) {
+    let targetSettingsBox = this.service.componentLists.settings[this.service.componentLists.settings.length-1];
+    targetSettingsBox.watch = targetSettingsBox.watch || {};
+    targetSettingsBox.watch['config.eventType'] = function(newValue) {
         switch(newValue) {
             case 'donation':
             case 'superchat':
@@ -226,12 +155,30 @@ function generateTimerBoxes() {
     });
 }
 
+function generateSEFields() {
+}
+
+function generateSEFieldsTimer() {
+    Object.assign(this.streamElementsFields, 
+        {
+            extensionAmount: {
+                destination: this.config.extensionAmount,
+                settings: {
+                    type: 'number',
+                    step: 1,
+                    label: 'Time to add per event/dollar/100-bits donated (seconds))'
+                }
+            }
+        }
+    );
+}
+
 function accumulationListener() {
     this.service.addListener(
         event => {
             let isCorrectType;
-            isCorrectType = event.details.type === this.config.eventType;
-            if(event.details.for === this.config.eventPlatform && isCorrectType) {
+            isCorrectType = event.details.type === this.service.config.eventType;
+            if(event.details.for === this.service.config.eventPlatform && isCorrectType) {
                 let amount = event.details.message.amount;
                 switch(event.details.type) {
                     case 'superchat':
@@ -266,8 +213,9 @@ function streamEventListener() {
     this.service.addListener(
         event => {
             let isCorrectType;
-            isCorrectType = event.details.type === this.config.eventType;
-            if(event.details.for === this.config.eventPlatform && isCorrectType) {
+            isCorrectType = event.details.type === this.service.config.eventType;
+            if(event.details.for === this.service.config.eventPlatform && isCorrectType) {
+                let lock = await this.requestDataLock();
                 switch(event.details.type) {
                     case 'superchat':
                         //superchats are measured in micros of a unit, so divide by 1000000 before continueing
@@ -315,8 +263,8 @@ function timerListener() {
     this.service.addListener(
         event => {
             let isCorrectType;
-            isCorrectType = event.details.type === this.config.eventType;
-            if(event.details.for === this.config.eventPlatform && isCorrectType) {
+            isCorrectType = event.details.type === this.service.config.eventType;
+            if(event.details.for === this.service.config.eventPlatform && isCorrectType) {
                 let amount = event.details.message.amount;
                 switch(event.details.type) {
                     case 'superchat':
@@ -359,21 +307,25 @@ let mixins = {
     goal: {
         defaultConfig,
         generateBoxes: generateGoalBoxes,
+        generateSEFields,
         generateListener: accumulationListener
     },
     counter: {
         defaultConfig,
         generateBoxes,
+        generateSEFields,
         generateListener: accumulationListener
     },
     streamEvent: {
         defaultConfig,
         generateBoxes: generateStreamEventBoxes,
+        generateSEFields,
         generateListener: streamEventListener
     },
     timer: {
         defaultConfig: defaultConfigTimer,
         generateBoxes: generateTimerBoxes,
+        generateSEFields: generateSEFieldsTimer,
         generateListener: timerListener
     }
 }

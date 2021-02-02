@@ -10,11 +10,11 @@ const defaultConfig = {
     accessToken: '',
     campaignId: '',
     moduleId: 'tiltifyScanner',
-    displayTitle: 'Tiltify API',
-    settingsTitle: 'Tiltify API',
     scanDelay: 30000, //integer, expressed in ms, (suggested: 30s (30000ms)),
     defaultData: defaultData
 };
+
+//todo: fields
 
 class TiltifyScanner extends EventEmitter {
     constructor(config={}) {
@@ -23,12 +23,34 @@ class TiltifyScanner extends EventEmitter {
         this.scanningInterval = null;
     }
 
-    // generateSettingsBox() {
-    //     super.generateSettingsBox();
-    //     this.settingsBox.innerHTML = `
-    //         <h3>Tiltify Settings</h3>
-    //     `;
-    // }
+    populateSEFields() {
+        super.populateSEFields();
+        let self=this;
+        Object.assign(this.streamElementsFields, 
+            {
+                accessToken: {
+                    get destination(){return self.config.accessToken;},
+                    set destination(v){self.config.accessToken = v;},
+                    settings: {
+                        type: 'text',
+                        label: 'Tiltify Access Token'
+                        //this value will be randomly generated on the config side
+                    }
+                },
+                campaignId: {
+                    get destination(){return self.config.campaignId;},
+                    set destination(v){self.config.campaignId = v;},
+                    settings: {
+                        type: 'text',
+                        label: 'Tiltify Campaign ID'
+                        //this value will be randomly generated on the config side
+                    }
+                }
+            }
+        );
+
+         //todo: consider if this should become static in some way and have the result passed as a constructor? it'll be easier to do it this way for now but the alternative would be more performant.
+    }
 
     generateBoxes() {
         super.generateBoxes();
