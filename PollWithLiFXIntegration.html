@@ -7,7 +7,7 @@
 import Module from './Module.js';
 import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.esm.browser.js';
 
-import SteCustomPoll from './SteCustomPoll.js';
+import PollWithLiFXIntegration from './PollWithLiFXIntegration.js';
 let config;
 if(document.location.search.length > 0) {
     config = JSON.parse(decodeURIComponent(document.location.search.slice(1)));
@@ -16,7 +16,7 @@ if(document.location.search.length > 0) {
 }
 
 config = Module.mixin({theme: 'ste'}, config);
-let activeWidget = new SteCustomPoll(config);
+let activeWidget = new PollWithLiFXIntegration(config);
 activeWidget.finalizeBoxes();
 
 let vue;
