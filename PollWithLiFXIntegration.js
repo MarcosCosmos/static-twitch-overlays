@@ -33,7 +33,7 @@ let defaultConfig;
 
 const codeForA = 'a'.charCodeAt(0);
 
-export default class SteCustomPoll extends Module {
+export default class PollWithLiFXIntegration extends Module {
     constructor(config=defaultConfig) {
         config = Module.mixin(defaultConfig, config);
 
