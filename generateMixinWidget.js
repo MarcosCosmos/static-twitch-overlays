@@ -2,6 +2,7 @@ import StreamlabsMixins from './StreamLabsMixins.js';
 import StreamlabsSocket from './StreamLabsSocket.js';
 import TiltifyMixins from './TiltifyMixins.js';
 import TiltifyScanner from './TiltifyScanner.js';
+import KofiViaSSEScannerMixins from './KofiViaSSEScannerMixins.js';
 import BasicGoal from './BasicGoal.js';
 import Counter from './Counter.js';
 import StreamEvent from './StreamEvent.js';
@@ -11,6 +12,7 @@ import BasicAlert from './BasicAlert.js';
 import Logger from './Logger.js';
 import Module from './Module.js';
 import Timer from './Timer.js';
+import KofiViaSSEScanner from './KofiViaSSEScanner.js';
 
 
 let widgetTypes = {
@@ -52,6 +54,11 @@ let serviceTypes = {
         title: 'Twitch Chat Command',
         constructor: ChatBot,
         mixin: ChatBotMixins
+    },
+    kofiViaSSE: {
+        title: 'Kofi (Via SSE)',
+        constructor: KofiViaSSEScanner,
+        mixin: KofiViaSSEScannerMixins
     }
 };
 

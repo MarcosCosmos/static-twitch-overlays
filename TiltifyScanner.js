@@ -19,7 +19,6 @@ const defaultConfig = {
 class TiltifyScanner extends EventEmitter {
     constructor(config={}) {
         super(Module.mixin(defaultConfig, config));
-        this.listeners = [];
         this.scanningInterval = null;
     }
 
