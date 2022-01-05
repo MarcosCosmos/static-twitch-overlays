@@ -1,6 +1,6 @@
 import Module from "./Module.js";
 import ChatBot from "./ChatBot.js";
-import StreamLabsSocket from './StreamLabsSocket.js';
+import StreamLabsSocket from './emitters/streamlabs/StreamLabsSocket.js';
 
 let defaultConfig;
 {

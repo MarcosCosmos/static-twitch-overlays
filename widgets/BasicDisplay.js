@@ -1,4 +1,4 @@
-import Module from './Module.js';
+import Module from '../core/Module.js';
  
 let defaultConfig;
 {
@@ -35,11 +35,11 @@ export default class BasicDisplay extends Module {
          //todo: consider if this should become static in some way and have the result passed as a constructor? it'll be easier to do it this way for now but the alternative would be more performant.
     }
 
-    generateBoxes() {
-        super.generateBoxes();
-
+    async generateBoxes() {
+        await super.generateBoxes();
+        let coreData = await this.coreDataPromise;
         this.componentLists.settings.push({
-            data: this.coreDataGetter,
+            data: () => coreData,
             template: `
                 <form action="" onsubmit="return false">
                     <label :for="config.moduleId + 'DisplayTitleSetting'">

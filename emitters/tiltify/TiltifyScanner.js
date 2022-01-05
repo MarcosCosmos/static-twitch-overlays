@@ -1,5 +1,5 @@
-import EventEmitter from './EventEmitter.js';
-import Module from './Module.js';
+import EventEmitter from '../EventEmitter.js';
+import Module from '../../core/Module.js';
 
 const defaultData = {
     //track the amount raised so we only raise events when that changes
@@ -51,10 +51,11 @@ class TiltifyScanner extends EventEmitter {
          //todo: consider if this should become static in some way and have the result passed as a constructor? it'll be easier to do it this way for now but the alternative would be more performant.
     }
 
-    generateBoxes() {
-        super.generateBoxes();
+    async generateBoxes() {
+        await super.generateBoxes();
+        let coreData = await this.coreDataPromise;
         this.componentLists.settings.push({
-            data: this.coreDataGetter,
+            data: () => coreData,
             template: `
                 <div>
                     <h4>Authentication Settings</h4>

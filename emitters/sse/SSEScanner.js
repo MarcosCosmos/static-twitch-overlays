@@ -1,5 +1,5 @@
-import EventEmitter from './EventEmitter.js';
-import Module from './Module.js';
+import EventEmitter from '../EventEmitter.js';
+import Module from '../../core/Module.js';
 
 const defaultConfig = {
     sourceURL: '',
@@ -16,10 +16,11 @@ class SSEScanner extends EventEmitter {
         super(Module.mixin(defaultConfig, config));
         this.eventSourceObj = null;
     }
-    generateBoxes() {
-        super.generateBoxes();
+    async generateBoxes() {
+        await super.generateBoxes();
+        let coreData = await this.coreDataPromise;
         this.componentLists.settings.push({
-            data: this.coreDataGetter,
+            data: () => coreData,
             template: `
                 <div>
                     <h4>Authentication Settings</h4>

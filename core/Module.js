@@ -45,32 +45,32 @@ class ModuleBase {
         this.dataLock = Lock.build(`Data-lock (${this.config.moduleId})`); //todo: consider if this second datalock is even neccessary anymore? it doesn't hurt, and would neccessary outside of JS, but still.
         this.saveLock = Lock.build(`Save-lock (${this.config.moduleId})`);
         this.isSavePending = false;
-        this.dataLock = this.dataLock
-            .then(() => this.loadInfo())
-            .then(() => {
-                this.componentLists = {};
+        this.coreDataPromise = new Promise((resolve) => {
+            this.dataLock = this.dataLock
+                .then(() => this.loadInfo())
+                .then(() => {
+                    this.componentLists = {};
 
-                this.boxes = {};
+                    this.boxes = {};
 
-                for(const each of ['display', 'info', 'settings', 'controls']) {
-                    this.componentLists[each] = [];
-                }
+                    for(const each of ['display', 'info', 'settings', 'controls']) {
+                        this.componentLists[each] = [];
+                    }
 
-            /*
-             * format {name: {destination: this.config.something, settings: {sePropName: value,}},}
-             */
-            this.streamElementsFields = {};
+                    /*
+                    * format {name: {destination: this.config.something, settings: {sePropName: value,}},}
+                    */
+                    this.streamElementsFields = {};
 
-            //prepare this for most of the boxes
-            let coreData = {
-                config: this.config,
-                info: this.info
-            };
+                    //prepare this for most of the boxes
+                    let coreData = {
+                        config: this.config,
+                        info: this.info
+                    };
 
-                this.coreDataGetter = function() {
-                    return coreData;
-                }
-            });
+                    resolve(coreData);
+                });
+        });
     }
 
     /**
@@ -99,27 +99,29 @@ class ModuleBase {
          //todo: consider if this should become static in some way and have the result passed as a constructor? it'll be easier to do it this way for now but the alternative would be more performant.
     }
     
-    generateBoxes() {
+    async generateBoxes() {
         // this.generateDisplayBox();//note that settings and data are things cached into localstorage.
         // this.generateInfoBox();
         // this.generateControlsBox();
         // this.generateSettingsBox();
         // this.generateSensitiveSettingsBox();
 
+        let coreData = await this.coreDataPromise;
+
         let self=this;
         this.componentLists.settings.push({
-            data: this.coreDataGetter,
+            data: () => coreData,
             template: `<h3>{{config.displayTitle}} Settings</h3>`
         });
 
         this.componentLists.info.push(
             {
-                data: this.coreDataGetter,
+                data: () => coreData,
                 template: `<h3>{{config.displayTitle}} Information</h3>`
             }
         );
         this.componentLists.info.push({
-            data: this.coreDataGetter,
+            data: () => coreData,
             template: `
                 <div>
                     <div>
@@ -132,11 +134,11 @@ class ModuleBase {
             `
         });
         this.componentLists.controls.push({
-            data: this.coreDataGetter,
+            data: () => coreData,
             template: `<h3>{{config.displayTitle}} Controls</h3>`
         });
         this.componentLists.controls.push({
-            data: this.coreDataGetter,
+            data: () => coreData,
             template: `
                 <form action="" onsubmit="return false">
                     <div>
@@ -158,30 +160,30 @@ class ModuleBase {
      * @returns a promise indicating it's completion
      */
     async finalizeBoxes() {
-        this.dataLock = this.dataLock.then(() => {
-            this.generateBoxes();
-            for(const each of ['display', 'info', 'settings', 'controls']) {
-                let eachComponents = this.componentLists[each];
-                let self=this;
-                this.boxes[each] = {
-                    data: function(){return {
-                        config: self.config,
-                        info: self.info,
-                        components: self.componentLists[each]
-                    }},
-                    template: `
-                        <div>
-                            <div class="${each}Box">
-                                <template v-for="each in components">
-                                    <component :is="each"></component>
-                                </template>
+        this.dataLock = this.dataLock.then(this.generateBoxes())
+            .then(() => {
+                for(const each of ['display', 'info', 'settings', 'controls']) {
+                    let eachComponents = this.componentLists[each];
+                    let self=this;
+                    this.boxes[each] = {
+                        data: function(){return {
+                            config: self.config,
+                            info: self.info,
+                            components: self.componentLists[each]
+                        }},
+                        template: `
+                            <div>
+                                <div class="${each}Box">
+                                    <template v-for="each in components">
+                                        <component :is="each"></component>
+                                    </template>
+                                </div>
                             </div>
-                        </div>
-                    `
-                };
-            }
-            this.populateSEFields();
-        });
+                        `
+                    };
+                }
+                this.populateSEFields();
+            });
         await this.dataLock;
     }
 
@@ -213,14 +215,12 @@ class ModuleBase {
      */
     save(lease) {
         //only saves if the lease is valid, as otherwise release throws.
-        dataLease.release();
+        lease.release();
         return this.requestSave();
     }
 
     /**
      * Throttles the save rate according to config.saveCooldown
-     * An external user can 
-     * @param {*} dataLease 
      * @returns a promise that resolves once the save completed (but before it's cooldown ends).
      * Important: If an error occurs, it is the savelock that rejects (so you should call this aynchronously, attach a catch to the savelock, and then await the resolution of this if you wish to handle those errors).
      * This means that the returned promise is a glorified callback, but it also importantly highlights that handling failed saves must return the module to a valid state for other callers, not just cancel the requested action.
@@ -238,7 +238,7 @@ class ModuleBase {
                 this.isSavePending = false;
                 setTimeout(() => {
                     saveLease.release();
-                }, this.config.saveCooldown);  
+                }, this.inManualMode ? 0 : this.config.saveCooldown);  
                 return true;
             } catch(e) {
                 saveLease.break(e);
@@ -262,6 +262,7 @@ class ModuleBase {
     }
 }
 
+
 class LocalStorageModule extends ModuleBase {
     /**
      * replaces existing values with those in local storage, where it exists
@@ -269,10 +270,23 @@ class LocalStorageModule extends ModuleBase {
      * Note: this method can only safely deal with JSON-compatible data
      */
     async getItems(destination) {
+        let tmp = await localStorage.getItem(`${this.config.moduleId}.info`); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
+        console.log(this.config.moduleId, 'got', tmp);
+        if(tmp != null) {
+            tmp = JSON.parse(tmp);
+            for(let eachName in destination) {
+                if(typeof tmp[eachName] !== 'undefined' && tmp[eachName] !== null) {
+                    destination[eachName] = JSON.parse(tmp[eachName]);
+                }
+            }
+        }
+
+        //collect any legacy format data - once off, erases so it won't override a second time.
         for(let eachName in destination) {
-            let tmp = await localStorage.getItem(`${this.config.moduleId}${eachName}`); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
+            let tmp = await localStorage.getItem(`${this.config.moduleId}${eachName}`);
             if(typeof tmp !== 'undefined' && tmp !== null) {
                 destination[eachName] = JSON.parse(tmp);
+                await localStorage.removeItem(`${this.config.moduleId}${eachName}`);
             }
         }
     }
@@ -283,9 +297,16 @@ class LocalStorageModule extends ModuleBase {
      * Note: this method can only safely deal with JSON-compatible data
      */
     async storeItems(destination) {
+        let payload = {};
         for(let eachName in destination) {
-            await localStorage.setItem(`${this.config.moduleId}${eachName}`, JSON.stringify(destination[eachName])); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
+            let eachTmp = destination[eachName];
+            if(typeof eachTmp !== 'undefined' && eachTmp !== null) {
+                payload[eachName] = JSON.stringify(eachTmp);
+            }
         }
+        let tmp = JSON.stringify(payload);
+        console.log(this.config.moduleId, 'put', tmp);
+        await localStorage.setItem(`${this.config.moduleId}.info`, tmp); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
     }
 }
 
@@ -315,9 +336,9 @@ class SEStorageModule extends ModuleBase {
         let payload = {};
         for(let eachName in destination) {
             let eachTmp = destination[eachName];
-            payload[eachName] = typeof eachTmp === 'number' || typeof eachTmp === 'boolean' || typeof eachTmp === 'string' ? eachTmp : JSON.stringify(eachTmp);
-            await SE_API.store.set(`${this.config.moduleId}.info`, payload);
+            payload[eachName] = (typeof eachTmp === 'number' || typeof eachTmp === 'boolean' || typeof eachTmp === 'string' ? eachTmp : JSON.stringify(eachTmp));
         }
+        await SE_API.store.set(`${this.config.moduleId}.info`, payload);
     }
 
     async getGenerationTimeStamp() {

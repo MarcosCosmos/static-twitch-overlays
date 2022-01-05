@@ -7,11 +7,11 @@ const defaultConfigTimer =  {
 
 //todo: figure out how much of these mixins to merge into the main settings for the purpose uniformity with se-settings?
 
-function generateBoxes() {
+async function generateBoxes() {
 }
 
-function generateGoalBoxes() {
-    (generateBoxes.bind(this))();
+async function generateGoalBoxes() {
+    await (generateBoxes.bind(this))();
     let targetSettingsBox = this.service.componentLists.settings[this.service.componentLists.settings.length-1];
     targetSettingsBox.watch = targetSettingsBox.watch || {};
     targetSettingsBox.watch['config.eventType'] = function(newValue) {
@@ -29,8 +29,8 @@ function generateGoalBoxes() {
     }
 }
 
-function generateStreamEventBoxes() {
-    (generateBoxes.bind(this))();
+async function generateStreamEventBoxes() {
+    await (generateBoxes.bind(this))();
     let targetSettingsBox = this.service.componentLists.settings[this.service.componentLists.settings.length-1];
     targetSettingsBox.watch = targetSettingsBox.watch || {};
     targetSettingsBox.watch['config.eventType'] = function(newValue) {
@@ -48,8 +48,9 @@ function generateStreamEventBoxes() {
 }
 
 
-function generateTimerBoxes() {
-    (generateBoxes.bind(this))();
+async function generateTimerBoxes() {
+    await (generateBoxes.bind(this))();
+    let coreData = await this.coreDataPromise;
     function hoursIn(ms) {                    
         let denominator = 1000*60*60;
         let result = ms/denominator;
@@ -70,7 +71,7 @@ function generateTimerBoxes() {
     this.componentLists.settings.push({
         data(){
             return {
-                core: self.coreDataGetter(),
+                core: coreData,
                 hours: hoursIn(self.config.extensionAmount),
                 minutes: minutesIn(self.config.extensionAmount),
                 seconds: secondsIn(self.config.extensionAmount)

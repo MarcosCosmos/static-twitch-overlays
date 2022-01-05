@@ -1,66 +1,20 @@
 const defaultConfig = {
-    eventType: 'Subscription',
-    countedObject: 'event'
 };
 
-const defaultConfigTimer =  {
-    eventType: 'Subscription',
+const defaultConfigTimer = {
     extensionAmount: 0
 };
 
-
-function generateBoxes() {
-    let self=this;
+async function generateBoxes() {
+    // let message = document.createElement('div');
+    // message.innerText = 'There are no Tiltify-specific settings at this time.';
+    // this.settingsBox.appendChild(message);
     this.componentLists.settings.push({
-        template: `
-            <form action="" onsubmit="return false">
-                <div>
-                    <h4>Event Type</h4>
-                    <div v-for="(eventName) of events">
-                        <input type="radio" name="eventType" v-model="config.eventType" :value="eventName" :id="config.moduleId + 'kofiSSE_' + eventName"/>
-                        <label :for="config.moduleId + 'kofiSSE_' + eventName">{{eventName}}</label>
-                    </div>
-                </div>
-            </form>
-        `,
-        data: function(){return {
-            config: self.config,
-            info: self.info,
-            events: [
-                'Donation', 'Subscription', 'Commission', 'Shop Order', 'all'
-            ]
-        }}
+        template: `<div>There are no Tiltify-specific settings at this time. This widget will respond to Tiltify donations.</div>`
     });
 }
 
-function generateAccumulationBoxes() {
-    let self=this;
-    (generateBoxes.bind(this))();
-    this.componentLists.settings.push({
-        template: `
-            <form action="" onsubmit="return false">
-                <div>
-                    <h4>Counting</h4>
-                    <div>
-                        <input type="radio" name="countedObject" v-model="config.countedObject" value="event" :id="config.moduleId + 'kofiSSE_countByEvent'"/>
-                        <label :for="config.moduleId + 'kofiSSE_countByEvent'">Event Occurence</label>
-                    </div>
-                    <div>
-                        <input type="radio" name="countedObject" v-model="config.countedObject" value="amount" :id="config.moduleId + 'kofiSSE_countByAmounted'"/>
-                        <label :for="config.moduleId + 'kofiSSE_countByAmount'">Donated Amount</label>
-                    </div>
-                </div>
-            </form>
-        `,
-        data: function(){return {
-            config: self.config,
-            info: self.info
-        }}
-    });
-}
-
-function generateTimerBoxes() {
-    (generateBoxes.bind(this))();
+async function generateTimerBoxes() {
     function hoursIn(ms) {                    
         let denominator = 1000*60*60;
         let result = ms/denominator;
@@ -78,10 +32,11 @@ function generateTimerBoxes() {
     }
 
     let self=this;
+    let coreData = await this.coreDataPromise;
     this.componentLists.settings.push({
         data(){
             return {
-                core: self.coreDataGetter(),
+                core: coreData,
                 hours: hoursIn(self.config.extensionAmount),
                 minutes: minutesIn(self.config.extensionAmount),
                 seconds: secondsIn(self.config.extensionAmount)
@@ -155,7 +110,7 @@ function generateTimerBoxes() {
         },
         methods: {
             updateAmount(hours, minutes, seconds) {
-                self.config.extensionAmount = self.computeMs(hours, minutes, seconds);
+                self.config.extraAmount = self.computeMs(result, this.minutes, this.seconds);
             },
             updateParts() {
                 this.hours = hoursIn(self.config.extensionAmount);
@@ -166,22 +121,34 @@ function generateTimerBoxes() {
     });
 }
 
+function generateSEFields() {
+}
+
+function generateSEFieldsTimer() {
+    let self=this;
+    Object.assign(this.streamElementsFields, 
+        {
+            extensionAmount: {
+                get destination(){return self.config.extensionAmount;},
+                set destination(v){self.config.extensionAmount = v;},
+                settings: {
+                    type: 'number',
+                    step: 1,
+                    label: 'Time to add per event/dollar/100-bits donated (seconds))'
+                }
+            }
+        }
+    );
+}
+
 function accumulationListener() {
     this.service.addListener(
         event => {
-            let isCorrectType;
-            isCorrectType = this.config.eventType == 'all' || event.details.type === this.config.eventType;
-            if(isCorrectType) {
-                switch(this.config.countedObject) {
-                    case 'event':
-                        this.increment();
-                        this.requestSave(); //don't await the next save event before continuing
-                        break;
-                    case 'amount':
-                        this.add(event.details.amount);
-                        this.requestSave();
-                        break;
-                }                
+            switch(event.type) {
+                case 'donation':
+                    this.add(event.details.amount);
+                    this.requestSave(); //don't await the next save event before continuing
+                    break;
             }
         }
     );
@@ -190,15 +157,12 @@ function accumulationListener() {
 function streamEventListener() {
     this.service.addListener(
         event => {
-            let isCorrectType;
-            isCorrectType = this.config.eventType == 'all' || event.details.type === this.config.eventType;
-            if(isCorrectType) {
-                this.info.currentEvent = {
-                    by: event.details.from_name,
-                    details: `${event.details.amount}`,
-                    raw: event.details
-                }
-            }
+            this.info.currentEvent = {
+                by: event.details.name,
+                detail: event.details.message.formattedAmount,
+                raw: event.details
+            };
+            this.requestSave(); //don't await the next save event before continuing
         }
     );
 }
@@ -206,19 +170,12 @@ function streamEventListener() {
 function timerListener() {
     this.service.addListener(
         event => {
-            let isCorrectType;
-            isCorrectType = this.config.eventType == 'all' || event.details.type === this.config.eventType;
-            if(isCorrectType) {
-                switch(this.config.countedObject) {
-                    case 'event':
-                        this.add(this.config.extensionAmount);
-                        this.requestSave(); //don't await the next save event before continuing
-                        break;
-                    case 'amount':
-                        this.add(event.details.amount*this.config.extensionAmount);
-                        this.requestSave();
-                        break;
-                }                
+            switch(event.type) {
+                case 'donation':
+                    this.add(event.details.amount*this.config.extensionAmount);
+                    this.updateCurrentGap();
+                    this.requestSave(); //don't await the next save event before continuing
+                    break;
             }
         }
     );
@@ -228,27 +185,29 @@ function alertListener() {
     console.log('WARNING: NOT YET IMPLEMENTED');
 }
 
-let mixins = {
+export default { 
     goal: {
         defaultConfig,
-        generateBoxes: generateAccumulationBoxes,
+        generateBoxes,
+        generateSEFields,
         generateListener: accumulationListener
     },
     counter: {
         defaultConfig,
-        generateBoxes: generateAccumulationBoxes,
+        generateBoxes,
+        generateSEFields,
         generateListener: accumulationListener
     },
     streamEvent: {
         defaultConfig,
-        generateBoxes: generateBoxes,
+        generateBoxes,
+        generateSEFields,
         generateListener: streamEventListener
     },
     timer: {
         defaultConfig: defaultConfigTimer,
         generateBoxes: generateTimerBoxes,
+        generateSEFields:generateSEFieldsTimer,
         generateListener: timerListener
     }
-}
-
-export default mixins;
+};

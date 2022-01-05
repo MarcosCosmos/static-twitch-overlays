@@ -1,4 +1,4 @@
-import Module from './Module.js';
+import Module from '../core/Module.js';
 import BasicDisplay from './BasicDisplay.js';
 
 let defaultConfig;
@@ -15,11 +15,12 @@ class Counter extends BasicDisplay {
         super(Module.mixin(defaultConfig, config));
     }
 
-    generateBoxes() {
-        super.generateBoxes();
+    async generateBoxes() {
+        await super.generateBoxes();
         let self=this;
+        let coreData = await this.coreDataPromise;
         this.componentLists.controls.push({
-            data: this.coreDataGetter,
+            data: () => coreData,
             template: `
                 <form action="" onsubmit="return false">
                     <label :for="config.moduleId + 'CurrentOverride'">

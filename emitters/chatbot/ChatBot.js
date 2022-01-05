@@ -1,7 +1,7 @@
-import EventEmitter from './EventEmitter.js';
-import Module from './Module.js';
+import EventEmitter from '../EventEmitter.js';
+import Module from '../../core/Module.js';
 
-import TMI from './lib/tmi.min.js';
+import TMI from '../../lib/tmi.min.js';
 
 const defaultConfig = {
     displayTitle: 'Twitch Chat API',
@@ -95,10 +95,11 @@ class ChatBot extends EventEmitter {
         );
     }
 
-    generateBoxes() {
-        super.generateBoxes();
+    async generateBoxes() {
+        await super.generateBoxes();
+        let coreData = await this.coreDataPromise;
         this.componentLists.settings.push({
-            data: this.coreDataGetter,
+            data: () => coreData,
             template: `
                 <div>
                     <h4>Misc Settings</h4>
@@ -112,7 +113,7 @@ class ChatBot extends EventEmitter {
             `,
         });
         this.componentLists.settings.push({
-            data: this.coreDataGetter,
+            data: () => coreData,
             computed: {
                 _cooldown: {
                     get() {

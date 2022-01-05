@@ -1,6 +1,6 @@
-import Module from './Module.js';
+import Module from '../core/Module.js';
 import BasicDisplay from './BasicDisplay.js';
-import Logger from './Logger.js';
+import Logger from '../emitters/log/Logger.js';
  
 let defaultConfig;
 {
@@ -54,7 +54,7 @@ export default class Timer extends BasicDisplay {
             config.defaultData.snapshotTime = new Date(Date.parse(config.defaultData.snapshotTime));
         }
         super(config);
-        this.logger = new Logger({moduleId: `${this.config.moduleId}_log`});
+        this.logger = new Logger(this.config.moduleId);
         this.updateInterval = null;
         
         //a utility var used internally to reduce repetitive computation, but never saved to storage since it would almost-never stay relevant/accurate
@@ -74,11 +74,11 @@ export default class Timer extends BasicDisplay {
         return secondsIn(this.currentGapMs);
     }
 
-    generateBoxes() {
-        super.generateBoxes();
+    async generateBoxes() {
+        await super.generateBoxes();
         let self=this;
         // this.componentLists.settings.push({
-        //     data: this.coreDataGetter,
+        //     data: this.coreDataPromise,
         //     template: `
         //         <form action="" onsubmit="return false">
         //             <span>
@@ -96,11 +96,11 @@ export default class Timer extends BasicDisplay {
         //         </form>
         //     `
         // });
-
+        let coreData = await this.coreDataPromise;
         this.componentLists.controls.push({
             data(){
                 return {
-                    core: self.coreDataGetter(),
+                    core: coreData,
                     hours: hoursIn(self.currentGapMs),
                     minutes: minutesIn(self.currentGapMs),
                     seconds: secondsIn(self.currentGapMs)
@@ -213,6 +213,7 @@ export default class Timer extends BasicDisplay {
                 setTimeGap(hours, minutes, seconds) {
                     self.timeToNowIfNull();
                     self.setReferenceTime(self.computeMs(hours, minutes, seconds), this.core.info.snapshotTime.valueOf());
+                    self.info.pausedGapMs = self.currentGapMs;
                     self.requestSave();
                 },
                 updateGapParts() {
@@ -223,10 +224,13 @@ export default class Timer extends BasicDisplay {
             }
         });
 
+
+        let loggerData = await this.logger.coreDataPromise;
+
         this.componentLists.controls.push({
             data() {return {
-                widget: self.coreDataGetter(),
-                logger: self.logger.coreDataGetter()
+                widget: coreData,
+                logger: loggerData
             }},
             computed: {
                 eventsToShow() {
@@ -251,8 +255,10 @@ export default class Timer extends BasicDisplay {
     }
 
     timeToNowIfNull() {
-        if(this.info.referenceTime === null) {
+        if(this.info.snapshotTime === null) {
             this.info.snapshotTime = new Date(Date.now());
+        } 
+        if(this.info.referenceTime === null) {
             this.info.referenceTime = new Date(this.info.snapshotTime.valueOf());
         }
     }

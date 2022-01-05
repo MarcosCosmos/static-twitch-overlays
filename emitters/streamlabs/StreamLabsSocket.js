@@ -1,5 +1,5 @@
-import EventEmitter from './EventEmitter.js';
-import Module from './Module.js';
+import EventEmitter from '../EventEmitter.js';
+import Module from '../../core/Module.js';
 
 const defaultConfig = {
     socketToken: '',
@@ -94,9 +94,10 @@ class StreamLabsSocket extends EventEmitter {
         );
     }
 
-    generateBoxes() {
-        super.generateBoxes();
+    async generateBoxes() {
+        await super.generateBoxes();
         let self=this;
+        let coreData = await this.coreDataPromise;
         this.componentLists.settings.push({
             template: `
                 <div>
@@ -139,7 +140,7 @@ class StreamLabsSocket extends EventEmitter {
             }
         });
         this.componentLists.settings.push({
-            data: this.coreDataGetter,
+            data: () => coreData,
             template: `
                 <div>
                     <h4>Authentication Settings</h4>

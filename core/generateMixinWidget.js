@@ -1,18 +1,18 @@
-import StreamlabsMixins from './StreamLabsMixins.js';
-import StreamlabsSocket from './StreamLabsSocket.js';
-import TiltifyMixins from './TiltifyMixins.js';
-import TiltifyScanner from './TiltifyScanner.js';
-import KofiViaSSEScannerMixins from './KofiViaSSEScannerMixins.js';
-import BasicGoal from './BasicGoal.js';
-import Counter from './Counter.js';
-import StreamEvent from './StreamEvent.js';
-import ChatBot from './ChatBot.js';
-import ChatBotMixins from './ChatBotMixins.js';
-import BasicAlert from './BasicAlert.js';
-import Logger from './Logger.js';
-import Module from './Module.js';
-import Timer from './Timer.js';
-import KofiViaSSEScanner from './KofiViaSSEScanner.js';
+import StreamlabsMixins from '../emitters/streamlabs/StreamLabsMixins.js';
+import StreamlabsSocket from '../emitters/streamlabs/StreamLabsSocket.js';
+import TiltifyMixins from '../emitters/tiltify/TiltifyMixins.js';
+import TiltifyScanner from '../emitters/tiltify/TiltifyScanner.js';
+import BasicGoal from '../widgets/BasicGoal.js';
+import Counter from '../widgets/Counter.js';
+import StreamEvent from '../widgets/StreamEvent.js';
+import ChatBot from '../emitters/chatbot/ChatBot.js';
+import ChatBotMixins from '../emitters/chatbot/ChatBotMixins.js';
+import BasicAlert from '../widgets/BasicAlert.js';
+import Logger from '../emitters/log/Logger.js';
+import Module from '../core/Module.js';
+import Timer from '../widgets/Timer.js';
+import KofiViaSSEScanner from '../emitters/sse/KofiViaSSEScanner.js';
+import KofiViaSSEScannerMixins from '../emitters/sse/KofiViaSSEScannerMixins.js';
 
 
 let widgetTypes = {
@@ -74,9 +74,9 @@ function generateMixinWidget(widgetType, serviceType) {
             this.service = service;
             (mixins.generateListener.bind(this)());
         }
-        generateBoxes() {
-            super.generateBoxes();
-            (mixins.generateBoxes.bind(this))();
+        async generateBoxes() {
+            await super.generateBoxes();
+            await (mixins.generateBoxes.bind(this))();
         }
         generateSEFields() {
             super.generateSEFields();

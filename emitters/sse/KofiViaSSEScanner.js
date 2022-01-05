@@ -1,6 +1,6 @@
 import SSEScanner, { defaultConfig as baseConfig } from './SSEScanner.js';
 
-import Module from './Module.js';
+import Module from '../../core/Module.js';
 
 const defaultConfig = baseConfig;
 

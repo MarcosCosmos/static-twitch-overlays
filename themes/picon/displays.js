@@ -1,22 +1,28 @@
 let displayMixins = {
-    goal(){return {
-        data: this.coreDataGetter,
+    async goal(){
+        let coreData = await this.coreDataPromise;
+        return {
+        data: () => coreData,
         template: `
             <div class="displayBox goalBox" ref="displayBox">
                 {{config.displayTitle}}</span>: {{info.currentValue}}/{{config.goal}}
             </div>
         `
     }},
-    counter(){return {
-        data: this.coreDataGetter,
+    async counter(){
+        let coreData = await this.coreDataPromise;
+        return {
+        data: () => coreData,
         template: `
             <div class="displayBox counterBox" ref="displayBox">
                 {{config.displayTitle}}</span>: {{info.currentValue}}
             </div>
         `
     }},
-    streamEvent(){return {
-        data: this.coreDataGetter,
+    async streamEvent(){
+        let coreData = await this.coreDataPromise;
+        return {
+        data: () => coreData,
         template: `
             <div class="displayBox" ref="displayBox">
                 <div style="text-decoration: underline;">{{config.displayTitle}}</div>
@@ -28,7 +34,7 @@ let displayMixins = {
         `
     }},
     // logger(){return {
-    //     data: this.coreDataGetter,
+    //     data: this.coreDataPromise,
     //     template: `
     //         <div class="displayBox logBox" ref="displayBox">
     //             <h1>${this.config.displayTitle}</h1>

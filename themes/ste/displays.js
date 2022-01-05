@@ -1,6 +1,8 @@
 let displayMixins = {
-    goal(){return {
-        data: this.coreDataGetter,
+    async goal(){
+        let coreData = await this.coreDataPromise;
+        return {
+        data: () => coreData,
         template: `
             <div class="displayBox goalBox outlineBox" ref="displayBox" style="height: calc(1.5em)">
                 <div v-for="e in ['forestroke', 'backstroke']" :class="e">
@@ -21,8 +23,10 @@ let displayMixins = {
             }
         },
     }},
-    counter(){return {
-        data: this.coreDataGetter,
+    async counter(){
+        let coreData = await this.coreDataPromise;
+        return {
+        data: () => coreData,
         template: `
             <div class="displayBox counterBox outlineBox" ref="displayBox" style="height: calc(1.5em)">
                 <div v-for="e in ['forestroke', 'backstroke']" :class="e">
@@ -31,8 +35,10 @@ let displayMixins = {
             </div>
         `,
     }},
-    streamEvent(){return {
-        data: this.coreDataGetter,
+    async streamEvent(){
+        let coreData = await this.coreDataPromise;
+        return {
+        data: () => coreData,
         template: `
             <div class="displayBox eventBox outlineBox" ref="displayBox" style="height: 3em">
                 <div v-for="e in ['forestroke', 'backstroke']" :class="e">
@@ -45,7 +51,7 @@ let displayMixins = {
             </div>
         `
     }},
-    timer() {
+    async timer() {
         let self=this;
 
         function hoursIn(ms) {                    
@@ -63,10 +69,11 @@ let displayMixins = {
             let result = Math.round((ms % (60*denominator))/denominator);
             return result > 0 ? Math.min(result, 59) : Math.max(result, -59);
         }
-
+        
+        let coreData = await this.coreDataPromise;
         return {
             data(){return {
-                core: self.coreDataGetter(),
+                core: coreData,
                 gapMilliseconds: self.currentGapMs,
             }},
             computed: {
@@ -103,13 +110,15 @@ let displayMixins = {
             `
         }
     },
-    poll() {
+    async poll() {
         // const codeForA = 'a'.charCodeAt(0);
         const self=this;
+
+        let coreData = await this.coreDataPromise;
         return {
             data(){
                 return {
-                    core: self.coreDataGetter(),
+                    core: coreData,
                     results: self.resultsForVue
                 }
             },

@@ -6,7 +6,7 @@ import Module from './Module.js';
 
 import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.esm.browser.js';
 
-import defaultThemeBoxes from './themes/default/displays.js';
+import defaultThemeBoxes from '/themes/default/displays.js';
 
 function relativeToAbsolute(path) {
     let base = document.location.href;
@@ -92,7 +92,6 @@ let doWork = async () => {
             const MixedWidget = generateMixinWidget(eachWidgetType, eachServiceType);
             let eachService = new serviceTypes[eachServiceType].constructor(serviceConfigToUse);
             let eachWidget = new MixedWidget(widgetConfigToUse, eachService);
-
             await eachService.finalizeBoxes();
             await eachWidget.finalizeBoxes();
                 
@@ -259,7 +258,7 @@ let doWork = async () => {
                 }, Set_toJSON, 4)}`;
             },
             displayBox() {
-                return (this.themeBoxes[this.widgetType].bind(this.widget))();
+                return this.themeBoxes[this.widgetType];
             },
             // loggerBox() {
             //     if(this.widget.logger) {
@@ -282,12 +281,14 @@ let doWork = async () => {
         methods: {
             async loadTheme() {
                 //only change theme if the new theme is real
-                let themeJsUrl = `./themes/${this.theme}/displays.js`;
+                let themeJsUrl = `/themes/${this.theme}/displays.js`;
                 if((await fetch(themeJsUrl)).status === 200){
                     let newBoxes = (await import(themeJsUrl)).default;
                     //assign only those that exist;
                     for(const eachKey of Object.keys(newBoxes)) {
-                        this.themeBoxes[eachKey] = newBoxes[eachKey];
+                        this.themeBoxes[eachKey] = await (
+                            newBoxes[eachKey].bind(this.widget)
+                        )();
                     }
                     
                     //only changes the css on a successful theme being grabbed
@@ -298,7 +299,7 @@ let doWork = async () => {
                     }
                     let newStyleSheet = document.createElement('link');
                     newStyleSheet.rel = 'stylesheet';
-                    newStyleSheet.href = `./themes/${this.theme}/style.css`;
+                    newStyleSheet.href = `/themes/${this.theme}/style.css`;
                     newStyleSheet.id = 'themeStyle';
                     
                     document.head.appendChild(newStyleSheet);

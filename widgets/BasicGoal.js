@@ -1,6 +1,6 @@
-import Module from './Module.js';
+import Module from '../core/Module.js';
 import Counter from './Counter.js';
-import Logger from './Logger.js';
+import Logger from '../emitters/log/Logger.js';
 
 
  
@@ -54,11 +54,12 @@ export default class BasicGoal extends Counter {
         );
     }
 
-    generateBoxes() {
-        super.generateBoxes();
+    async generateBoxes() {
+        await super.generateBoxes();
         let self=this;
+        let coreData = await this.coreDataPromise;
         this.componentLists.settings.push({
-            data: this.coreDataGetter,
+            data: () => coreData,
             template: `
                 <form action="" onsubmit="return false">
                     <label :for="config.moduleId + 'GoalSetting'">
@@ -74,7 +75,7 @@ export default class BasicGoal extends Counter {
             `
         });
         this.componentLists.controls.push({
-            data: this.coreDataGetter,
+            data: () => coreData,
             template: `
                 <form action="" onsubmit="return false">
                     <label for="${this.moduleId}TotalOverride">
@@ -98,10 +99,13 @@ export default class BasicGoal extends Counter {
                 }
             }
         });
+
+        let loggerData = await this.logger.coreDataPromise;
+
         this.componentLists.controls.push({
             data() {return {
-                widget: self.coreDataGetter(),
-                logger: self.logger.coreDataGetter()
+                widget: coreData,
+                logger: loggerData
             }},
             computed: {
                 eventsToShow() {

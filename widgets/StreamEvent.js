@@ -1,5 +1,5 @@
-import Module from './Module.js';
-import BasicDisplay from './BasicDisplay.js';
+import Module from '../core/Module.js';
+import BasicDisplay from '../widgets/BasicDisplay.js';
 
 let defaultConfig = {
     defaultData: {
