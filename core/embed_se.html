@@ -2,10 +2,13 @@
 <head>
 <link rel="stylesheet" href="https://mc-twitch-overlays-beta.netlify.app/core.css" title="Core CSS with default styles"/>
 <script src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js' type='text/javascript'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js' type='text/javascript'></script>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@3.2.27/dist/vue.global.js"></script>
 <script type="module">
 import initialise from 'https://mc-twitch-overlays-beta.netlify.app/embed.js';
 window.addEventListener('onWidgetLoad', function (obj) {
-    initialise({}, obj.detail.fieldData, !(obj.detail.overlay.isEditorMode));
+    initialise({}, !(obj.detail.overlay.isEditorMode));
 });
 </script>
 </head>
