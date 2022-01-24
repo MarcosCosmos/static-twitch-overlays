@@ -1,7 +1,7 @@
 
 import {widgetTypes, serviceTypes, generateMixinWidget} from './generateMixinWidget.js';
 import Module from './Module.js';
-import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.esm.browser.js';
+import Vue from 'https://cdn.jsdelivr.net/npm/vue@3.2.27/dist/vue.esm.browser.js';
 
 const defaultConfig = {
     moduleId: '',

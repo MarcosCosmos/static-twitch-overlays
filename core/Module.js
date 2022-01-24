@@ -61,6 +61,9 @@ class ModuleBase {
                     * format {name: {destination: this.config.something, settings: {sePropName: value,}},}
                     */
                     this.streamElementsFields = {};
+                    
+                    this.config = Vue.reactive(this.config);
+                    this.info = Vue.reactive(this.info);
 
                     //prepare this for most of the boxes
                     let coreData = {
@@ -111,7 +114,7 @@ class ModuleBase {
         let self=this;
         this.componentLists.settings.push({
             data: () => coreData,
-            template: `<h3>{{config.displayTitle}} Settings</h3>`
+            template: `<h3>{{config.displayTitle}} Settings ({{config.moduleId}})</h3>`
         });
 
         this.componentLists.info.push(
@@ -160,16 +163,17 @@ class ModuleBase {
      * @returns a promise indicating it's completion
      */
     async finalizeBoxes() {
-        this.dataLock = this.dataLock.then(this.generateBoxes())
+        this.dataLock = this.dataLock.then(()=>this.generateBoxes())
             .then(() => {
+                this.generateBoxes = async () => {}; //no repeat!
                 for(const each of ['display', 'info', 'settings', 'controls']) {
-                    let eachComponents = this.componentLists[each];
+                    let eachComponents = this.componentLists[each].map(e => Vue.markRaw(e));
                     let self=this;
-                    this.boxes[each] = {
+                    this.boxes[each] = Vue.markRaw({
                         data: function(){return {
                             config: self.config,
                             info: self.info,
-                            components: self.componentLists[each]
+                            components: eachComponents
                         }},
                         template: `
                             <div>
@@ -180,7 +184,7 @@ class ModuleBase {
                                 </div>
                             </div>
                         `
-                    };
+                    });
                 }
                 this.populateSEFields();
             });
@@ -271,7 +275,6 @@ class LocalStorageModule extends ModuleBase {
      */
     async getItems(destination) {
         let tmp = await localStorage.getItem(`${this.config.moduleId}.info`); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
-        console.log(this.config.moduleId, 'got', tmp);
         if(tmp != null) {
             tmp = JSON.parse(tmp);
             for(let eachName in destination) {
@@ -305,7 +308,6 @@ class LocalStorageModule extends ModuleBase {
             }
         }
         let tmp = JSON.stringify(payload);
-        console.log(this.config.moduleId, 'put', tmp);
         await localStorage.setItem(`${this.config.moduleId}.info`, tmp); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
     }
 }

@@ -11,7 +11,9 @@ const defaultConfig = {
     campaignId: '',
     moduleId: 'tiltifyScanner',
     scanDelay: 30000, //integer, expressed in ms, (suggested: 30s (30000ms)),
-    defaultData: defaultData
+    defaultData: defaultData,
+
+    displayTitle: 'Tiltify API',
 };
 
 //todo: fields

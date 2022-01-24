@@ -58,7 +58,6 @@ class SSEScanner extends EventEmitter {
     }
 
     async onEvent(event) {
-        console.log('ok got an event');
         for(const eachListener of this.listeners) {
             try {
                 //possibly don't need to await each listener anymore since they control their own data lock? however, having the await here allowed the listener to dictate that.

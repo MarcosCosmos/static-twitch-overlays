@@ -1,10 +1,10 @@
 
 //todo: make the configuration page more user friendly; e.g. start new link..
 
-import {widgetTypes, serviceTypes, generateMixinWidget} from './generateMixinWidget.js';
+import {widgetTypes, serviceTypes, CompositeModule} from '../handlers/CompositeModule.js';
 import Module from './Module.js';
 
-import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.esm.browser.js';
+import Vue from 'https://cdn.jsdelivr.net/npm/vue@3.2.27/dist/vue.esm.browser.js';
 
 import defaultThemeBoxes from '/themes/default/displays.js';
 
@@ -56,7 +56,7 @@ let randomNum = Math.floor(Math.random() * Math.floor(1000000));
 const baseDefaultConfig = {
     moduleId: `widget_${randomNum}`,
     widgetType: 'goal',
-    serviceType: 'streamlabs',
+    selectedServiceTypes: ['streamlabs'],
     theme: 'default'
 };
 
@@ -71,6 +71,106 @@ let defaultConfig = Module.mixin(baseDefaultConfig, loadedConfig);
 let mixedModules = {
 };
 
+let overallTemplate = {
+    props: ['widgetId'],
+    // data: function (){return {
+    //     widgetConfig: eachWidget.config,
+    //     serviceConfig: eachService.config,
+    //     widgetInfo: eachWidget.info,
+    //     serviceInfo: eachService.info,
+    //     visibilities: {
+    //         links: true,
+    //         controls: false,
+    //         info: false,
+    //         settings: true,
+    //     }
+    // }},
+    // components: {
+    //     // widgetDisplay: eachWidget.boxes.display,
+    //     widgetControls: eachWidget.boxes.controls,
+    //     serviceControls: eachService.boxes.controls,
+    //     widgetInfo: eachWidget.boxes.info,
+    //     serviceInfo: eachService.boxes.info,
+    //     widgetSettings: eachWidget.boxes.settings,
+    //     serviceSettings: eachService.boxes.settings
+    // },
+    watch: {
+        widgetInfo: {
+            handler () {
+                eachWidget.requestSave();
+            },
+            deep: true
+        },
+        serviceInfo: {
+            handler() {
+                eachService.requestSave();
+            },
+            deep: true
+        },
+        widgetId() {
+            this.updateIds();
+        }
+    },
+    methods: {
+        updateIds() {
+            this.widgetConfig.moduleId = this.widgetId;
+            if(this.serviceConfig.subconfigs.length > 1) {
+                for(let i=0; i < this.serviceConfig.subconfigs.length; i++) {
+                    this.serviceConfig.subconfigs[i].moduleId = `${this.widgetId}_service_i`;
+                }
+            } else {
+                this.serviceConfig.subconfigs[0].moduleId = `${this.widgetId}_service`;
+            }
+        },
+        created() {
+            this.updateIds();
+        },
+        toggle(section) {
+            this.visibilities[section] = !this.visibilities[section];
+        }
+    },
+    created() {
+        this.updateIds();
+    },
+    template: `
+        <div>
+            <h1>Preview</h1>
+            <div id="previewSection">
+                <slot name="displayBox"></slot>
+            </div>
+            <h1 class="btn-lg btn-block btn-secondary block" v-on:click="toggle('links')">Links & Codes</h1>
+            <div id="urlsSection" :class="{hidden: !visibilities.links}">
+                <slot name="urlBoxes"></slot>
+            </div>
+            <h1 class="btn-lg btn-block btn-secondary block" v-on:click="toggle('controls')">Preview Controls</h1>
+            <div id="controlsSection" :class="{hidden: !visibilities.controls}">
+                <widget-controls></widget-controls>
+                <service-controls></service-controls>
+            </div>
+            <h1 class="btn-lg btn-block btn-secondary block" v-on:click="toggle('info')">Debug Info</h1>
+            <div id="infoSection" :class="{hidden: !visibilities.info}">
+                <widget-info></widget-info>
+                <service-info></service-info>
+            </div>
+            <h1 class="btn-lg btn-block btn-secondary block" v-on:click="toggle('settings')">Settings</h1>
+            <div id="settingsSection" :class="{hidden: !visibilities.settings}">
+                <slot name="widgetTypeSettings"></slot>
+                <widget-settings></widget-settings>
+                <service-settings></service-settings>
+            </div>
+        </div>
+    `,
+
+    
+};
+
+mixedModules[`${eachWidgetType}_${eachServiceType}`] = {
+    widget: eachWidget,
+    service: eachService
+};
+mixedComponents[`${eachWidgetType}_${eachServiceType}`] = eachComponent;
+}
+
 let mixedComponents = {};
 let doWork = async () => {
     for(const eachWidgetType of Object.keys(widgetTypes)) {
@@ -83,7 +183,7 @@ let doWork = async () => {
             } else {
                 widgetConfigToUse = {};
             }
-            if(defaultConfig.serviceType === eachServiceType) {
+            if(defaultConfig.selectedServiceTypes === eachServiceType) {
                 serviceConfigToUse = defaultConfig.serviceConfig;
             } else {
                 serviceConfigToUse = {};
@@ -195,7 +295,7 @@ let doWork = async () => {
         data: function(){return {
             moduleId: defaultConfig.moduleId,
             widgetType: defaultConfig.widgetType,
-            serviceType: defaultConfig.serviceType,
+            selectedServiceTypes: [defaultConfig.selectedServiceTypes],
             widgetTypes: widgetTypes,
             serviceTypes: serviceTypes,
             theme: defaultConfig.theme || 'default',
@@ -204,7 +304,6 @@ let doWork = async () => {
             seFieldsJSON: '',
             seDataJSON: ''
         }},
-        components: mixedComponents,
         computed: {
             currentComponentKey() {
                 return `${this.widgetType}_${this.serviceType}`;
@@ -279,6 +378,9 @@ let doWork = async () => {
             }
         },
         methods: {
+            updateWidgetType() {
+
+            }
             async loadTheme() {
                 //only change theme if the new theme is real
                 let themeJsUrl = `/themes/${this.theme}/displays.js`;

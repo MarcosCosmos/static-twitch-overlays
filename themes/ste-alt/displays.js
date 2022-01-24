@@ -5,7 +5,7 @@ let displayMixins = {
         data: () => coreData,
         template: `
             <div class="displayBox goalBox" ref="displayBox" style="height: calc(1.5em)">
-                {{config.displayTitle}}</span>: {{info.currentValue}}/{{config.goal}}
+                <span>{{config.displayTitle}}</span>: {{info.currentValue}}/{{config.goal}}
             </div>
         `,
         computed: {
@@ -27,7 +27,7 @@ let displayMixins = {
         data: () => coreData,
         template: `
             <div class="displayBox counterBox" ref="displayBox" style="height: calc(1.5em)">
-                {{config.displayTitle}}</span>: {{info.currentValue}}
+                <span>{{config.displayTitle}}</span>: {{info.currentValue}}
             </div>
         `,
     }},

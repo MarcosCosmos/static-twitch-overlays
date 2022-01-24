@@ -6,7 +6,7 @@ let displayMixins = {
         template: `
             <div class="displayBox goalBox outlineBox" ref="displayBox" style="height: calc(1.5em)">
                 <div v-for="e in ['forestroke', 'backstroke']" :class="e">
-                    {{config.displayTitle}}</span>: {{info.currentValue}}/{{config.goal}}
+                    <span>{{config.displayTitle}}</span>: {{info.currentValue}}/{{config.goal}}
                 </div>
             </div>
         `,
@@ -30,7 +30,7 @@ let displayMixins = {
         template: `
             <div class="displayBox counterBox outlineBox" ref="displayBox" style="height: calc(1.5em)">
                 <div v-for="e in ['forestroke', 'backstroke']" :class="e">
-                    {{config.displayTitle}}</span>: {{info.currentValue}}
+                    <span>{{config.displayTitle}}</span>: {{info.currentValue}}
                 </div>
             </div>
         `,

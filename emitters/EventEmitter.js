@@ -1,4 +1,4 @@
-import Module from '../../core/Module.js';
+import Module from '../core/Module.js';
 
 function Set_toJSON(key, value) {
   if (typeof value === 'object' && value instanceof Set) {
@@ -7,11 +7,7 @@ function Set_toJSON(key, value) {
   return value;
 }
 
-const defaultConfig = {
-    // defaultData: {
-    //     eventsSeen: []
-    // }
-};
+const defaultConfig = {};
 
 class EventEmitter extends Module {
     constructor(config) {

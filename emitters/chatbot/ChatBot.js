@@ -10,7 +10,6 @@ const defaultConfig = {
     channels: '',
     userLevel: 0,
     cooldown: 1000,
-    commandPrefixes: '',
     defaultData: {
         lastMessageTime: new Date(0)
     }
@@ -100,22 +99,8 @@ class ChatBot extends EventEmitter {
         let coreData = await this.coreDataPromise;
         this.componentLists.settings.push({
             data: () => coreData,
-            template: `
-                <div>
-                    <h4>Misc Settings</h4>
-                    <form action="" onsubmit="return false">
-                        <label :for="config.moduleId + 'commandPrefixes'">
-                            Command(s) to listen for (aliases are comma seperated):
-                        </label>
-                        <input name="commandPrefixes" :id="config.moduleId + 'commandPrefixes'" v-model="config.commandPrefixes"/>
-                    </form>
-                </div>
-            `,
-        });
-        this.componentLists.settings.push({
-            data: () => coreData,
             computed: {
-                _cooldown: {
+                cooldownSeconds: {
                     get() {
                         return this.config.cooldown/1000;
                     },
@@ -145,7 +130,7 @@ class ChatBot extends EventEmitter {
                         <label :for="config.moduleId + 'Cooldown'">
                             Cooldown (seconds):
                         </label>
-                        <input name="cooldown" :id="config.moduleId + 'Cooldown'" v-model="_cooldown"/>
+                        <input name="cooldown" :id="config.moduleId + 'Cooldown'" v-model="cooldownSeconds"/>
                         <br/>
                         <label :for="config.moduleId + 'UserLevel'">
                             Minimum User Level (ignore users below this):

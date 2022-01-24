@@ -4,7 +4,8 @@ let defaultConfig;
 {
     let exampleTitle = `{Widget Title}`;
     defaultConfig = {
-        displayTitle: exampleTitle
+        displayTitle: exampleTitle,
+        theme: 'default'
     };
 }
 

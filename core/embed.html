@@ -2,122 +2,77 @@
 <head>
 <link rel="stylesheet" href="./core.css" title="Core CSS with default styles"/>
 <script src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js' type='text/javascript'></script>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@3.2.27/dist/vue.global.js"></script>
 <script type="module">
-
-import {widgetTypes, serviceTypes, generateMixinWidget} from './generateMixinWidget.js';
+import CompositeModule, {widgetTypes, serviceTypes, handlerTypes} from './CompositeModule.js';
 import Module from './Module.js';
-import Vue from 'https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.esm.browser.js';
-
-const defaultConfig = {
-    moduleId: '',
-    widgetType: 'goal',
-    serviceType: 'streamlabs',
-    widgetConfig: {},
-    serviceConfig: {},
-    boxToShow: 'display',
-    theme: 'default'
-};
-
 let config;
-
 if(document.location.search.length > 0) {
     config = JSON.parse(decodeURIComponent(document.location.search.slice(1)));
 } else {
     config = {};
 }
-config = Module.mixin(defaultConfig, config);
-
-
-if(config.boxToShow == 'controls') {
-    config.widgetConfig.saveCooldown = 0;
-    config.serviceConfig.saveCooldown = 0;
-}
-
-let MixedClass = generateMixinWidget(config.widgetType, config.serviceType);
-let activeService = new serviceTypes[config.serviceType].constructor(config.serviceConfig);
-activeService.inManualMode = true;
-let activeWidget = new MixedClass(config.widgetConfig, activeService);
-activeWidget.inManualMode = true;
 let doWork = async () => {
-    await activeService.finalizeBoxes();
-    await activeWidget.finalizeBoxes();
-    console.log(config);
-
-    if(config.boxToShow == 'controls') {
-        config.widgetConfig.saveCooldown = 0;
-        config.serviceConfig.saveCooldown = 0;
-        console.log('hi');
-    }
-
-    console.log(config);
+    let theModule = new CompositeModule(config);
+    await theModule.finalizeBoxes();
 
     let vue;
     switch(config.boxToShow) {
         case 'display':
             let work = async () => {
-                let themeJsUrl = `/themes/${config.theme}/displays.js`;
+                let themeName = config.widget.theme;
+                let themeJsUrl = `/themes/${themeName}/displays.js`;
                 if((await fetch(themeJsUrl)).status != 200){
                     //fallback to the default theme
-                    config.theme = 'default';
-                    themeJsUrl = `/themes/${config.theme}/displays.js`;
+                    themeName = 'default';
+                    themeJsUrl = `/themes/${themeName}/displays.js`;
                 }
                 let displayBoxes = (await import(themeJsUrl)).default;
-                let displayBox = await (displayBoxes[config.widgetType].bind(activeWidget))();
+                let displayBox = await (displayBoxes[config.widget.moduleTypeName].bind(theModule.widget))();
                 
                 //only changes the css on a successful theme being grabbed
                 
-                let oldStyleSheet = document.querySelector('#themeStyle');
-                if(oldStyleSheet) {
-                    oldStyleSheet.remove();
-                }
                 let newStyleSheet = document.createElement('link');
                 newStyleSheet.rel = 'stylesheet';
-                newStyleSheet.href = `/themes/${config.theme}/style.css`;
+                newStyleSheet.href = `/themes/${themeName}/style.css`;
                 newStyleSheet.id = 'themeStyle';
                 
                 document.head.appendChild(newStyleSheet);
-                vue = new Vue({
-                    el: '#embed',
+
+                const app = Vue.createApp({
                     components: {
                         display: displayBox
                     },
                     template: `<display></display>`
                 });
-                activeWidget.start();
-                activeService.start();
+                const vm = app.mount('#embed');
+
+                theModule.start();
             }
             work();
             break;
         default:
-            vue = new Vue({
-                el: '#embed',
+            const app = Vue.createApp({
+                data() {
+                    return {module: theModule};
+                },
                 components: {
-                    widget: activeWidget.boxes[config.boxToShow],
-                    service: activeService.boxes[config.boxToShow],
-                    widgetInfo: activeWidget.info,
-                    serviceInfo: activeService.info,                
+                    boxes: theModule.boxes[config.boxToShow], 
                 },
                 template: `
                     <div>
-                        <widget></widget>
-                        <service></service>
+                        <component :is="module.widget.boxes[module.config.boxToShow]"/>
+                        <div v-for="eachService of Object.values(module.services)">
+                            <component :is="eachService.boxes[module.config.boxToShow]"/>
+                        </div>
+                        <div v-for="eachHandler of Object.values(module.handlers)">
+                            <component :is="eachHandler.boxes[module.config.boxToShow]"/>
+                        </div>
                     </div>
                 `,
-                watch: {
-                    widgetInfo: {
-                        handler () {
-                            activeWidget.save();
-                        },
-                        deep: true
-                    },
-                    serviceInfo: {
-                        handler() {
-                            activeService.save();
-                        },
-                        deep: true
-                    }
-                }
             });
+            const vm = app.mount('#embed'); 
     }
 };
 doWork();

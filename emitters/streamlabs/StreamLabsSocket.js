@@ -3,8 +3,6 @@ import Module from '../../core/Module.js';
 
 const defaultConfig = {
     socketToken: '',
-    eventType: 'donation', //https://dev.streamlabs.com/docs/socket-api <--- type/for info/list
-    eventPlatform: 'streamlabs', //https://dev.streamlabs.com/docs/socket-api <--- type/for info/list,
     moduleId: 'streamlabsSocket',
     displayTitle: 'Streamlabs Socket API'
 };
@@ -99,47 +97,6 @@ class StreamLabsSocket extends EventEmitter {
         let self=this;
         let coreData = await this.coreDataPromise;
         this.componentLists.settings.push({
-            template: `
-                <div>
-                    <h3>Misc Settings</h3>
-                    <form action="" onsubmit="return false">
-                        <div>
-                            <h4>Platform:</h4>
-                            <div v-for="(platform, platformId) of platforms">
-                                <input type="radio" name="eventPlatform" v-model="config.eventPlatform" :value="platformId" :id="'slEventPlatform_' + platformId"/>
-                                <label :for="'slEventPlatform_' + platformId">{{platform.title}}</label>
-                            </div>
-                        </div>
-                        <div>
-                            <h4>Event Type</h4>
-                            <div v-for="(eventTitle, eventId) of selectedPlatform.events">
-                                <input type="radio" name="eventType" v-model="config.eventType" :value="eventId" :id="'slEvent_' + eventId"/>
-                                <label :for="'slEvent_' + eventId">{{eventTitle}}</label>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            `,
-            data: function(){return {
-                config: self.config,
-                info: self.info,
-                platforms: platforms
-            }},
-            computed: {
-                selectedPlatform() {
-                    return platforms[this.config.eventPlatform];
-                }
-            },
-            watch: {
-                selectedPlatform(newValue) {
-                    let newOptions = Object.keys(newValue.events);
-                    if(newOptions.indexOf(this.config.eventType) === -1){
-                        this.config.eventType = newOptions[0];
-                    }
-                },
-            }
-        });
-        this.componentLists.settings.push({
             data: () => coreData,
             template: `
                 <div>
@@ -175,7 +132,7 @@ class StreamLabsSocket extends EventEmitter {
                                 await eachListener({
                                     type: 'streamlabs',
                                     details: eachModified
-                                });
+                                }, this);
                             } catch (err) {
                                 console.error(err);
                             }
@@ -198,4 +155,4 @@ class StreamLabsSocket extends EventEmitter {
     }
 }
 
-export default StreamLabsSocket;
+export {StreamLabsSocket as default, platforms};
