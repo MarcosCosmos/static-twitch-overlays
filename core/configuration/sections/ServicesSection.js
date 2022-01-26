@@ -1,5 +1,5 @@
 import {widgetTypes, serviceTypes, handlerTypes} from '../../CompositeModule.js';
-import defaultThemeBoxes from '/themes/default/displays.js';
+import defaultThemeBoxes from '../../../themes/default/displays.js';
 
 export default {
     template: `
