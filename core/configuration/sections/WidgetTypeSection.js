@@ -97,9 +97,8 @@ export default {
     async created() {
         this.loadTheme();
         this.module.widget.config.moduleId = `the_only`;
-        this.module.widget.finalizeBoxes().then(
-            () => this.settingsBoxes = this.module.widget.boxes.settings
-        );
+        await this.module.widget.finalizeBoxes();
+        this.settingsBoxes = this.module.widget.boxes.settings
         await this.updateBoxes();
     },
 };

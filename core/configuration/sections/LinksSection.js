@@ -44,14 +44,20 @@ export default {
                 </div>
                 <div class="urlBox">
                     <h4>Embedding Links (Use these as a browser source in OBS)</h4>
-                    <h5>Main Display URL</h5>
+                    <h5>Main Display URL (local)</h5>
                     <a class="urlText alert alert-light" :href="displayUrl" target="_blank">
                         <pre>{{displayUrl}}</pre>
                     </a>
-                    <h5>Additional Controls URL</h5>
+                    <h5>Additional Controls URL (local)</h5>
                     <a class="urlText alert alert-light" :href="controlsUrl" target="_blank">
                     <pre>{{controlsUrl}}</pre>
                     </a>
+                    <h5>Main Display HTML (StreamElements)</h5>
+                    <textarea class="urlText alert alert-light" target="_blank" disabled>{{seDisplayHTML}}</textarea>
+                    <h5>Additional Controls HTML (StreamElements)</h5>
+                    <textarea class="urlText alert alert-light" target="_blank" disabled>{{seControlsHTML}}</textarea>
+                    
+
                     <h4>Permalink to the Current Settings</h4>
                     <a class="urlText alert alert-light" :href="formUrl">
                         <pre>{{formUrl}}</pre>
@@ -93,16 +99,45 @@ export default {
         },
         formUrl() {
             let formConfig = encodeURIComponent(JSON.stringify(this.compositeConfig));
-            return `${relativeToAbsolute('./configuration.html')}?${formConfig}`;
+            return `${relativeToAbsolute('./configuration.html')}?${formConfig}#links-section`;
         },
         settingsJSON() {
             return `${this.formattedConfig}`;
+        },
+        seDisplayHTML() {
+            return this.generateEmbedHTML('display');
+        },
+        seControlsHTML() {
+            return this.generateEmbedHTML('controls');
         },
         displayBox() {
             return this.themeBoxes[this.widgetType];
         }
     },
     methods: {
+        generateEmbedHTML(boxToShow) {
+            return `
+            <!doctype html>
+            <html>
+                <head>
+                    <link rel="stylesheet" href="https://mc-twitch-overlays-beta.netlify.app/core/core.css" title="Core CSS with default styles"/>
+                    <script src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js' type='text/javascript'></script>
+                    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.27/dist/vue.global.js"></script>
+                    <script type="module">
+                        import initialise from 'https://marcoscosmos.gitlab.io/static-twitch-overlays/core/embed.js';
+                        window.addEventListener('onWidgetLoad', function (obj) {
+                            let config = ${JSON.stringify(this.compositeConfig)};
+                            config.boxToShow = '${boxToShow}';
+                            initialise(config, !(obj.detail.overlay.isEditorMode),'https://marcoscosmos.gitlab.io/static-twitch-overlays');
+                        });
+                    </script>
+                </head>
+                <body>
+                    <div id="embed"></div>
+                </body>
+            </html>
+            `;
+        },
         async loadTheme() {
             //only change theme if the new theme is real
             let themeJsUrl = `/themes/${this.module.widget.config.theme}/displays.js`;
@@ -130,9 +165,7 @@ export default {
 
     async created() {
         this.loadTheme();
-        this.updateBoxes();
-        this.module.widget.finalizeBoxes().then(
-            () => this.settingsBoxes = this.module.widget.boxes.settings
-        );
+        await this.module.widget.finalizeBoxes();
+        await this.updateBoxes();
     },
 };

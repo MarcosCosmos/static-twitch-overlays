@@ -163,9 +163,10 @@ class ModuleBase {
      * @returns a promise indicating it's completion
      */
     async finalizeBoxes() {
+        this.finalizeBoxes = async () => {await this.dataLock};
         this.dataLock = this.dataLock.then(()=>this.generateBoxes())
             .then(() => {
-                this.generateBoxes = async () => {}; //no repeat!
+                this.generateBoxes = async () => {await this.dataLock}; //no repeat!
                 for(const each of ['display', 'info', 'settings', 'controls']) {
                     let eachComponents = this.componentLists[each].map(e => Vue.markRaw(e));
                     let self=this;
