@@ -13,7 +13,10 @@ body {
     border: #cecece dotted 2px;
     border-radius: 5px;
     background-color: white;
-    color: #030303 !important;
+}
+
+.urlBox *, .infoBox *, .controlsBox *, .configBox * {
+    color: #030303;
 }
 
 #previewSection, #previewSection > * {
