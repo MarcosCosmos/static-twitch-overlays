@@ -13,69 +13,8 @@ if(document.location.search.length > 0) {
 } else {
     config = {};
 }
-let doWork = async () => {
-    let theModule = new CompositeModule(config);
-    await theModule.finalizeBoxes();
-
-    let vue;
-    switch(config.boxToShow) {
-        case 'display':
-            let work = async () => {
-                let themeName = config.widget.theme;
-                let themeJsUrl = `/themes/${themeName}/displays.js`;
-                if((await fetch(themeJsUrl)).status != 200){
-                    //fallback to the default theme
-                    themeName = 'default';
-                    themeJsUrl = `/themes/${themeName}/displays.js`;
-                }
-                let displayBoxes = (await import(themeJsUrl)).default;
-                let displayBox = await (displayBoxes[config.widget.moduleTypeName].bind(theModule.widget))();
-                
-                //only changes the css on a successful theme being grabbed
-                
-                let newStyleSheet = document.createElement('link');
-                newStyleSheet.rel = 'stylesheet';
-                newStyleSheet.href = `/themes/${themeName}/style.css`;
-                newStyleSheet.id = 'themeStyle';
-                
-                document.head.appendChild(newStyleSheet);
-
-                const app = Vue.createApp({
-                    components: {
-                        display: displayBox
-                    },
-                    template: `<display></display>`
-                });
-                const vm = app.mount('#embed');
-
-                theModule.start();
-            }
-            work();
-            break;
-        default:
-            const app = Vue.createApp({
-                data() {
-                    return {module: theModule};
-                },
-                components: {
-                    boxes: theModule.boxes[config.boxToShow], 
-                },
-                template: `
-                    <div>
-                        <component :is="module.widget.boxes[module.config.boxToShow]"/>
-                        <div v-for="eachService of Object.values(module.services)">
-                            <component :is="eachService.boxes[module.config.boxToShow]"/>
-                        </div>
-                        <div v-for="eachHandler of Object.values(module.handlers)">
-                            <component :is="eachHandler.boxes[module.config.boxToShow]"/>
-                        </div>
-                    </div>
-                `,
-            });
-            const vm = app.mount('#embed'); 
-    }
-};
-doWork();
+import initialise from './embed.js';
+initialise(config, true, '');
 </script>
 </head>
 <body>
