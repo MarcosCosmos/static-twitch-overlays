@@ -140,7 +140,7 @@ export default {
         },
         async loadTheme() {
             //only change theme if the new theme is real
-            let themeJsUrl = `/themes/${this.module.widget.config.theme}/displays.js`;
+            let themeJsUrl = `./themes/${this.module.widget.config.theme}/displays.js`;
             if((await fetch(themeJsUrl)).status === 200){
                 //only changes the css on a successful theme being grabbed
                 
@@ -150,7 +150,7 @@ export default {
                 }
                 let newStyleSheet = document.createElement('link');
                 newStyleSheet.rel = 'stylesheet';
-                newStyleSheet.href = `/themes/${this.module.widget.config.theme}/style.css`;
+                newStyleSheet.href = `.//themes/${this.module.widget.config.theme}/style.css`;
                 newStyleSheet.id = 'themeStyle';
                 
                 document.head.appendChild(newStyleSheet);
