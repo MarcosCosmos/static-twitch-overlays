@@ -1,5 +1,5 @@
 import {widgetTypes} from '../../CompositeModule.js';
-import defaultThemeBoxes from '/themes/default/displays.js';
+import defaultThemeBoxes from '../../../themes/default/displays.js';
 
 
 import Module from '../../Module.js';
@@ -150,7 +150,7 @@ export default {
                 }
                 let newStyleSheet = document.createElement('link');
                 newStyleSheet.rel = 'stylesheet';
-                newStyleSheet.href = `.//themes/${this.module.widget.config.theme}/style.css`;
+                newStyleSheet.href = `./themes/${this.module.widget.config.theme}/style.css`;
                 newStyleSheet.id = 'themeStyle';
                 
                 document.head.appendChild(newStyleSheet);
