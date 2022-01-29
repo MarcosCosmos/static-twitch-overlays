@@ -26,7 +26,7 @@ import ContinueBot, {defaultConfig} from './ContinueBot.js';
     let theModule = new ContinueBot(config);
     await theModule.finalizeBoxes();
 
-    let displayBoxes = await loadTheme(theModule.widget.config.theme, '../../');
+    let displayBoxes = await loadTheme(theModule.widget.config.theme, 'https://marcoscosmos.gitlab.io/static-twitch-overlays/');
     let displayBox = await (displayBoxes.timer.bind(theModule.widget))();
 
     spawnApp(theModule, displayBox, true);
