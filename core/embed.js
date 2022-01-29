@@ -1,7 +1,6 @@
 import CompositeModule from './CompositeModule.js';
-export default async (config, start=true, baseUrl='https://marcoscosmos.gitlab.io/static-twitch-overlays') => {
-    let themeName = config.widget.theme;
 
+async function loadTheme(themeName, baseUrl) {
     let themeJsUrl = `${baseUrl}/themes/${themeName}/displays.js`;
     if((await fetch(themeJsUrl)).status != 200){
         //fallback to the default theme
@@ -22,12 +21,12 @@ export default async (config, start=true, baseUrl='https://marcoscosmos.gitlab.i
     
     document.head.appendChild(newStyleSheet);
 
-    let theModule = new CompositeModule(config);
-    await theModule.finalizeBoxes();
-    switch(config.boxToShow) {
+    return (await import(themeJsUrl)).default;
+}
+
+async function spawnApp(theModule, displayBox, start) {
+    switch(theModule.config.boxToShow) {
         case 'display': {
-            let displayBoxes = (await import(themeJsUrl)).default;
-            let displayBox = await (displayBoxes[config.widget.moduleTypeName].bind(theModule.widget))();
             const app = Vue.createApp({
                 components: {
                     display: displayBox
@@ -41,7 +40,7 @@ export default async (config, start=true, baseUrl='https://marcoscosmos.gitlab.i
             break;
         }
         default: {
-            if(config.boxToShow == 'controls') {
+            if(theModule.config.boxToShow == 'controls') {
                 theModule.isInManualMode = true;
                 theModule.widget.isInManualMode = true;
                 for(let each of Object.values(theModule.services)) {
@@ -56,7 +55,7 @@ export default async (config, start=true, baseUrl='https://marcoscosmos.gitlab.i
                     return {module: theModule};
                 },
                 components: {
-                    boxes: theModule.boxes[config.boxToShow], 
+                    boxes: theModule.boxes[theModule.config.boxToShow], 
                 },
                 template: `
                     <div>
@@ -73,4 +72,16 @@ export default async (config, start=true, baseUrl='https://marcoscosmos.gitlab.i
             const vm = app.mount('#embed');
         } 
     }
+}
+
+async function initialise(config, start=true, baseUrl='https://marcoscosmos.gitlab.io/static-twitch-overlays') {
+    let theModule = new CompositeModule(config);
+    await theModule.finalizeBoxes();
+
+    let displayBoxes = await loadTheme(config.widget.theme, baseUrl);
+    let displayBox = await (displayBoxes[config.widget.moduleTypeName].bind(theModule.widget))();
+    
+    spawnApp(theModule, displayBox, start);
 };
+
+export {initialise as default, loadTheme, spawnApp};

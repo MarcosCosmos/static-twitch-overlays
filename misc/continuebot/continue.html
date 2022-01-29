@@ -1,0 +1,39 @@
+<!doctype html>
+<head>
+<link rel="stylesheet" href="../../core/core.css" title="Core CSS with default styles"/>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js' type='text/javascript'></script>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@3.2.27/dist/vue.global.js"></script>
+<script type="module">
+import CompositeModule from '../../core/CompositeModule.js';
+import Module from '../../core/Module.js';
+import {loadTheme, spawnApp} from '../../core/embed.js';
+import ContinueBot, {defaultConfig} from './ContinueBot.js';
+
+(async () => {
+    let config = {};
+    if(document.location.search.length > 0) {
+        let searchParams = new URLSearchParams(document.location.search.slice(1));
+        for(let eachKey of Object.keys(defaultConfig)) {
+            if(searchParams.has(eachKey)) {
+                config[eachKey] = searchParams.get(eachKey);
+            }
+        }
+    } else {
+        config = {};
+    }
+    
+    let theModule = new ContinueBot(config);
+    await theModule.finalizeBoxes();
+
+    let displayBoxes = await loadTheme(theModule.widget.config.theme, '../../');
+    let displayBox = await (displayBoxes.timer.bind(theModule.widget))();
+
+    spawnApp(theModule, displayBox, true);
+})();
+</script>
+</head>
+<body>
+<div id="embed"></div>
+</body>
+</html>

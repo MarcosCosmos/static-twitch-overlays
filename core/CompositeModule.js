@@ -129,21 +129,4 @@ class CompositeModule extends Module {
     }
 }
 
-// function generateCompositeModule(widgetType, requestedServiceTypes) {
-//     const widgetTypeInfo = widgetTypes[widgetType];
-//     // const serviceTypeInfos = Arrays.map(serviceType => serviceTypes[serviceType]);
-//     // let mixins = Arrays.map(serviceType => JSON.parse(JSON.stringify(serviceTypeInfo.mixin[widgetType])));
-
-//     let mixedDefaultConfig = {mixins: {}};
-//     for(let eachTypeName of requestedServiceTypes) {
-//         let serviceTypeInfo = serviceTypes[eachServiceType];
-//         let mixinInfo = serviceTypeInfo.mixin[widgetType];
-//         Module.assigningDeepMixin(mixedDefaultConfig.mixins[eachServiceType], mixinInfo.config);
-//     }
-
-    
-    
-//     return MixinWidget;
-// }
-
 export {CompositeModule as default, widgetTypes, serviceTypes, handlerTypes};

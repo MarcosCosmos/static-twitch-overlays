@@ -3,7 +3,13 @@ import EventHandler from "../EventHandler.js";
 import Module from '../../core/Module.js';
 
 const defaultConfig = {
-    commandPrefixes: ''
+    userLevel: 0,
+    cooldown: 1000,
+    commandPrefixes: '',
+    ignoreOwnMessage: true,
+    defaultData: {
+        lastMessageTime: new Date(0)
+    }
 };
 
 class GeneralHandler extends EventHandler {
@@ -18,6 +24,16 @@ class GeneralHandler extends EventHandler {
         let coreData = await this.coreDataPromise;
         this.componentLists.settings.push({
             data: () => coreData,
+            computed: {
+                cooldownSeconds: {
+                    get() {
+                        return this.config.cooldown/1000;
+                    },
+                    set(val) {
+                        this.config.cooldown = 1000*val;
+                    }
+                }
+            },
             template: `
                 <div>
                     <h4>Misc Settings</h4>
@@ -26,6 +42,21 @@ class GeneralHandler extends EventHandler {
                             Command(s) to listen for (aliases are comma seperated):
                         </label>
                         <input name="commandPrefixes" :id="config.moduleId + 'commandPrefixes'" v-model="config.commandPrefixes"/>
+                        <label :for="config.moduleId + 'Cooldown'">
+                            Cooldown (seconds):
+                        </label>
+                        <input name="cooldown" :id="config.moduleId + 'Cooldown'" v-model="cooldownSeconds"/>
+                        <br/>
+                        <label :for="config.moduleId + 'UserLevel'">
+                            Minimum User Level (ignore users below this):
+                        </label>
+                        <select name="userLevel" :id="config.moduleId + 'userLevel'" v-model="config.userLevel">
+                            <option value="4">Broadcaster</option>
+                            <option value="3">Moderator</option>
+                            <option value="2">VIP</option>
+                            <option value="1">Subscriber</option>
+                            <option value="0">Everyone</option>
+                        </select>
                     </form>
                 </div>
             `,
@@ -44,12 +75,22 @@ class GeneralHandler extends EventHandler {
     }
 
     async onEvent(event) {
+        if(this.config.ignoreOwnMessage && event.isMyMsg) return;
         if(this.regex === null) {
-            let prefixes = this.service.config.commandPrefixes.split(',').map(each => each.trim());
+            let prefixes = this.config.commandPrefixes.split(',').map(each => each.trim());
             this.regex = new RegExp(`^(${prefixes.join('|')})( +|$)`);
         }
         if(this.regex.test(event.message)) {
-            await this.onAcceptedEvent(event);
+            let now = new Date(Date.now());
+            if(this.service.levelOf(event.tags) >= this.config.userLevel ) {
+                if(now - this.info.lastMessageTime < this.config.cooldown) {
+                    return;
+                } else {
+                    this.info.lastMessageTime = now;
+                }
+                this.requestSave();
+                await this.onAcceptedEvent(event);
+            }
         }
     }
 }
@@ -75,19 +116,19 @@ class AccumulationHandler extends GeneralHandler {
         }
         let result;
         if(increment) {
-            await this.increment();
-            result = `${this.config.displayTitle} is now: ${this.info.currentValue}`;
-            this.requestSave(); //save forcedly releases the lock, so it can only be used once each time the lock is grabbed.
+            await this.widget.increment();
+            result = `${this.widget.config.displayTitle} is now: ${this.widget.info.currentValue}`;
+            this.widget.requestSave(); //save forcedly releases the lock, so it can only be used once each time the lock is grabbed.
         } else if(!isNaN(amount) && isFinite(amount)) {
             if (relative) {
-                this.add(amount);
+                this.widget.add(amount);
             } else {
-                this.set(amount);
+                this.widget.set(amount);
             }
-            result = `${this.config.displayTitle} is now: ${this.info.currentValue}`;
-            this.requestSave(); //save forcedly releases the lock, so it can only be used once each time the lock is grabbed.
+            result = `${this.widget.config.displayTitle} is now: ${this.widget.info.currentValue}`;
+            this.widget.requestSave(); //save forcedly releases the lock, so it can only be used once each time the lock is grabbed.
         } else {
-            result = `${this.config.displayTitle} is now: ${this.info.currentValue}`;
+            result = `${this.widget.config.displayTitle} is now: ${this.widget.info.currentValue}`;
         }
         return result;
     }
@@ -127,17 +168,17 @@ class TimerHandler extends GeneralHandler {
         
         let result;
         if(!isNaN(amount) && isFinite(amount)) {
-            this.timeToNowIfNull();
+            this.widget.timeToNowIfNull();
             if (relative) {
-                this.add(amount);
+                this.widget.add(amount);
             } else {
-                this.info.snapshotTime = new Date(Date.now());
-                this.setReferenceTime(amount, this.info.snapshotTime.valueOf());
+                this.widget.info.snapshotTime = new Date(Date.now());
+                this.widget.setReferenceTime(amount, this.widget.info.snapshotTime.valueOf());
             }
-            this.updateCurrentGap();
-            result = `${this.config.displayTitle} is now: ${this.getHours()}:${this.getMinutes()}:${this.getSeconds()} (${this.info.isPaused ? 'paused' : 'and counting'})`;
+            this.widget.updateCurrentGap();
+            result = `${this.config.displayTitle} is now: ${this.widget.getHours()}:${this.widget.getMinutes()}:${this.widget.getSeconds()} (${this.widget.info.isPaused ? 'paused' : 'and counting'})`;
         } else {
-            result = `${this.config.displayTitle} is now: ${this.getHours()}:${this.getMinutes()}:${this.getSeconds()} (${this.info.isPaused ? 'paused' : 'and counting'})`;
+            result = `${this.config.displayTitle} is now: ${this.widget.getHours()}:${this.widget.getMinutes()}:${this.widget.getSeconds()} (${this.widget.info.isPaused ? 'paused' : 'and counting'})`;
         }
         return result;
     }
@@ -151,22 +192,24 @@ class StreamEventHandler extends GeneralHandler {
             payload = event.message.substr(match.index + match[0].length);
         }
         
-        this.info.currentEvent = {
+        this.widget.info.currentEvent = {
             by: event.tags.displayName,
             detail: payload,
             raw: event
         };
-        this.requestSave();
+        this.widget.requestSave();
         return `Message recieved! @${event.tags.displayName}`;
     }
 }
 
-export default { 
+let defaultExport = { 
     goal: AccumulationHandler,
     counter: AccumulationHandler,
     streamEvent: StreamEventHandler,
     timer: TimerHandler
 };
+
+export {defaultExport as default, GeneralHandler};
 
 // function generateBoxes(processor) {
 // }

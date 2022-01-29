@@ -8,11 +8,7 @@ const defaultConfig = {
     username: '',
     authToken: '',
     channels: '',
-    userLevel: 0,
-    cooldown: 1000,
-    defaultData: {
-        lastMessageTime: new Date(0)
-    }
+    defaultData: {}
 };
 
 const userLevels = {
@@ -99,16 +95,6 @@ class ChatBot extends EventEmitter {
         let coreData = await this.coreDataPromise;
         this.componentLists.settings.push({
             data: () => coreData,
-            computed: {
-                cooldownSeconds: {
-                    get() {
-                        return this.config.cooldown/1000;
-                    },
-                    set(val) {
-                        this.config.cooldown = 1000*val;
-                    }
-                }
-            },
             template: `
                 <div>
                     <h4>Authentication Settings</h4>
@@ -127,21 +113,6 @@ class ChatBot extends EventEmitter {
                             Channels (comma seperated):
                         </label>
                         <input name="channels" :id="config.moduleId + 'Channels'" v-model="config.channels"/>
-                        <label :for="config.moduleId + 'Cooldown'">
-                            Cooldown (seconds):
-                        </label>
-                        <input name="cooldown" :id="config.moduleId + 'Cooldown'" v-model="cooldownSeconds"/>
-                        <br/>
-                        <label :for="config.moduleId + 'UserLevel'">
-                            Minimum User Level (ignore users below this):
-                        </label>
-                        <select name="userLevel" :id="config.moduleId + 'userLevel'" v-model="config.userLevel">
-                            <option value="4">Broadcaster</option>
-                            <option value="3">Moderator</option>
-                            <option value="2">VIP</option>
-                            <option value="1">Subscriber</option>
-                            <option value="0">Everyone</option>
-                        </select>
                     </form>
                 </div>
             `
@@ -167,22 +138,14 @@ class ChatBot extends EventEmitter {
         });
         let self=this;
         this.client.on('message', async (channel, tags, message, isMyMsg) => {
-            let now = new Date(Date.now());
-            if(isMyMsg) return;
-            if(self.levelOf(tags) >= self.config.userLevel ) {
-                if(now - self.info.lastMessageTime < self.config.cooldown) {
-                    return;
-                } else {
-                    self.info.lastMessageTime = now;
-                }
-                for(const each of self.listeners) {
-                    await each({
-                        channel,
-                        tags,
-                        message,
-                        self
-                    });
-                }
+            for(const each of self.listeners) {
+                await each({
+                    channel,
+                    tags,
+                    message,
+                    self,
+                    isMyMsg
+                });
             }
         });
         await this.client.connect();
