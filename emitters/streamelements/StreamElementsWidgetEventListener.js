@@ -20,8 +20,6 @@ class StreamElementsWidgetEventListener extends EventEmitter {
                 }
             }
         }
-
-        this.eventCallback = null;
     }
     
 
