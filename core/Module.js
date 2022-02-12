@@ -295,6 +295,7 @@ class GeneralStorageModule extends ModuleBase {
     extractData(data) {
         let result;
         if(data !== null) {
+            result = {...data};
             for(let eachName in result) {
                 if(typeof result[eachName] !== 'undefined' && result[eachName] !== null) {
                     result[eachName] = JSON.parse(result[eachName]);
