@@ -11,7 +11,7 @@ class StreamElementsWidgetEventListener extends EventEmitter {
         super(Module.mixin(defaultConfig, config));
 
         this.eventCallback = async (data) => {
-            for(const eachListener of self.listeners) {
+            for(const eachListener of this.listeners) {
                 try {
                     //possibly don't need to await each listener anymore since they control their own data lock? however, having the await here allowed the listener to dictate that.
                     await eachListener(data.detail);
