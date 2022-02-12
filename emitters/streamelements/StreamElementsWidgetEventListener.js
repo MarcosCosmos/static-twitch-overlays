@@ -27,11 +27,11 @@ class StreamElementsWidgetEventListener extends EventEmitter {
 
     async start() {
         await this.stop();
-        window.addEventListener('onEventRecieved', this.eventCallback);
+        window.addEventListener('onEventReceived', this.eventCallback);
     }
 
     async stop() {
-        window.removeEventListener('onEventRecieved', this.eventCallback);
+        window.removeEventListener('onEventReceived', this.eventCallback);
     }
 }
 
