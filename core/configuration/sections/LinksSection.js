@@ -120,7 +120,7 @@ export default {
             <!doctype html>
             <html>
                 <head>
-                    <link rel="stylesheet" href="https://mc-twitch-overlays-beta.netlify.app/core/core.css" title="Core CSS with default styles"/>
+                    <link rel="stylesheet" href="https://marcoscosmos.gitlab.io/core/core.css" title="Core CSS with default styles"/>
                     <script src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js' type='text/javascript'></script>
                     <script src="https://cdn.jsdelivr.net/npm/vue@3.2.27/dist/vue.global.js"></script>
                     <script type="module">

@@ -292,10 +292,9 @@ class GeneralStorageModule extends ModuleBase {
     /**
      * Extracts data from a jsonified object of jsonified values (this format is used primarily for compatiblity with SE storage)
      */
-    extractData(text) {
+    extractData(data) {
         let result;
-        if(text !== null) {
-            result = JSON.parse(text);
+        if(data !== null) {
             for(let eachName in result) {
                 if(typeof result[eachName] !== 'undefined' && result[eachName] !== null) {
                     result[eachName] = JSON.parse(result[eachName]);
@@ -312,9 +311,11 @@ class LocalStorageModule extends GeneralStorageModule {
      * Note: this method can only safely deal with JSON-compatible data
      */
     async getItems(expected) {
-        let text = (await localStorage.getItem(`${this.config.moduleId}.info`));
-        let result = this.extractData(text || null); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
-
+        let result;
+        let text = (await localStorage.getItem(`${this.config.moduleId}.info`)) || null;
+        if(text !== null) {
+            result = this.extractData(JSON.parse(text)); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
+        }
         //collect any legacy format data - once off, erases so it won't override a second time.
         for(let eachName in expected) {
             let tmp = await localStorage.getItem(`${this.config.moduleId}${eachName}`);
