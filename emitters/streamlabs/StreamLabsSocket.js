@@ -132,7 +132,7 @@ class StreamLabsSocket extends EventEmitter {
                                 await eachListener({
                                     type: 'streamlabs',
                                     details: eachModified
-                                }, this);
+                                });
                             } catch (err) {
                                 console.error(err);
                             }

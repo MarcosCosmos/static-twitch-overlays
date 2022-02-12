@@ -23,7 +23,7 @@ export default {
         </div>
         <div class="configBox">
             <h2>Add Service</h2>
-            <button v-for="eachType of Object.keys(serviceTypes)" type="button" class="btn btn-primary" @click="addService(eachType)">New {{eachType}}</button>
+            <button v-for="eachType of Object.keys(serviceTypes)" type="button" class="btn btn-primary" @click="addService(eachType)">New {{serviceTypes[eachType].title}}</button>
         </div>
     </div>
     `,

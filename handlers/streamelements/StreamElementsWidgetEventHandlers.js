@@ -26,8 +26,8 @@ class GeneralHandler extends EventHandler {
                     <div>
                         <h4>Event Type</h4>
                         <div v-for="(eventName, index) of events">
-                            <input type="radio" name="eventType" v-model="core.config.eventType" :value="eventName" :id="core.config.moduleId + 'kofiSSE_' + index"/>
-                            <label :for="core.config.moduleId + 'kofiSSE_' + index">{{eventName}}</label>
+                            <input type="radio" name="eventType" v-model="core.config.eventType" :value="eventName" :id="core.config.moduleId + 'seWidgetEventHandler_' + index"/>
+                            <label :for="core.config.moduleId + 'seWidgetEventHandler_' + index">{{eventName}}</label>
                         </div>
                     </div>
                 </form>
@@ -35,7 +35,21 @@ class GeneralHandler extends EventHandler {
             data: function(){return {
                 core: coreData,
                 events: [
-                    'Donation', 'Subscription', 'Commission', 'Shop Order', 'all'
+                    'follower-latest',
+                    'subscriber-latest',
+                    'host-latest',
+                    'cheer-latest',
+                    'tip-latest',
+                    'raid-latest',
+                    'all'
+                    // message - New chat message received
+                    // delete-message - Chat message removed
+                    // delete-messages - Chat messages by userId removed
+                    // event:skip - User clicked "skip alert" button in activity feed
+                    // bot:counter - Update of bot counter
+                    // kvstore:update - Update of SE_API store value.
+                    // widget-button - User clicked custom field button in widget properties
+                    // 'Donation', 'Subscription', 'Commission', 'Shop Order', 'all'
                 ]
             }}
         });
@@ -45,11 +59,11 @@ class GeneralHandler extends EventHandler {
                 <div>
                     <form action="" onsubmit="return false">
                         <h4>Counting</h4>
-                        <input type="radio" name="countedObject" v-model="core.config.countedObject" value="event" :id="core.config.moduleId + 'kofiSSE_countByEvent'"/>
-                        <label :for="core.config.moduleId + 'kofiSSE_countByEvent'">Event Occurence</label>
+                        <input type="radio" name="countedObject" v-model="core.config.countedObject" value="event" :id="core.config.moduleId + 'seWidgetEventHandler_countByEvent'"/>
+                        <label :for="core.config.moduleId + 'seWidgetEventHandler_countByEvent'">Event Occurence</label>
                         <br/>
-                        <input type="radio" name="countedObject" v-model="core.config.countedObject" value="amount" :id="core.config.moduleId + 'kofiSSE_countByAmount'"/>
-                        <label :for="core.config.moduleId + 'kofiSSE_countByAmount'">Event Value</label>
+                        <input type="radio" name="countedObject" v-model="core.config.countedObject" value="amount" :id="core.config.moduleId + 'seWidgetEventHandler_countByAmount'"/>
+                        <label :for="core.config.moduleId + 'seWidgetEventHandler_countByAmount'">Event Value</label>
                     </form>
                 </div>
             `,
@@ -64,7 +78,7 @@ class GeneralHandler extends EventHandler {
     }
 
     async onEvent(event) {
-        let isCorrectType = this.config.eventType === 'all' || this.config.eventType === event.details.type;
+        let isCorrectType = this.config.eventType === 'all' || this.config.eventType === event.listener;
         if(isCorrectType) {
             await this.onAcceptedEvent(event);
         }
@@ -85,8 +99,8 @@ class AccumulationHandler extends GeneralHandler {
             template: `
                 <div>
                     <form action="" onsubmit="return false">
-                        <label for="'kofiSSEAccumValue_'+core.config.moduleId">Event Value (per event or monetary unit)</label>
-                        <input type="number" name="eventValue" v-model="core.config.eventValue" :id="'kofiSSEAccumValue_'+core.config.moduleId"/>
+                        <label for="'seWidgetEventHandlerAccumValue_'+core.config.moduleId">Event Value (per event or monetary unit)</label>
+                        <input type="number" name="eventValue" v-model="core.config.eventValue" :id="'seWidgetEventHandlerAccumValue_'+core.config.moduleId"/>
                     </form>
                 </div>
             `,
@@ -99,16 +113,43 @@ class AccumulationHandler extends GeneralHandler {
      * Action that takes place when an event occurs; Maybe include configurable filters etc
      */
     async onAcceptedEvent(event) {
-        switch(this.config.countedObject) {
-            case 'event':
-                this.widget.add(this.config.eventValue);
-                this.widget.requestSave(); //don't await the next save event before continuing
-                break;
-            case 'amount':
-                this.widget.add(event.details.amount*this.config.eventValue);
-                this.widget.requestSave();
-                break;
-        }    
+        //skip the bulk event for any kind of accumulation
+        if(!event.event.bulkGifted) {
+            switch(this.config.countedObject) {
+                case 'event':
+                    this.widget.add(this.config.eventValue);
+                    this.widget.requestSave(); //don't await the next save event before continuing
+                    break;
+                case 'amount':
+                    let amount = event.event.amount;
+                    switch(event.listener) {
+                        case 'follower-latest':
+                        case 'host-latest':
+                        case 'raid-latest':
+                            amount = 1;
+                            break;
+                        case 'subscriber-latest':
+                            switch(event.event.tier) {
+                                case '1000':
+                                    amount = 1;
+                                    break;
+                                case '2000':
+                                    amount = 2;
+                                    break;
+                                case '3000':
+                                    amount = 5;
+                                    break;
+                            }
+                        case 'cheer-latest':
+                        case 'tip-latest':
+                            //these stay as default;
+                            break;
+                    }
+                    this.widget.add(amount*this.config.eventValue);
+                    this.widget.requestSave();
+                    break;
+            }    
+        }
     }
 }
 
@@ -135,17 +176,44 @@ class TimerHandler extends GeneralHandler {
     /**
      * Action that takes place when an event occurs; Maybe include configurable filters etc
      */
-    async onAcceptedEvent(event) {
-        switch(this.config.countedObject) {
-            case 'event':
-                this.widget.add(this.config.extensionAmount);
-                this.widget.requestSave(); //don't await the next save event before continuing
-                break;
-            case 'amount':
-                this.widget.add(event.details.amount*this.config.extensionAmount);
-                this.widget.requestSave();
-                break;
-        }                
+     async onAcceptedEvent(event) {
+        //skip the bulk event for any kind of accumulation
+        if(!event.event.bulkGifted) {
+            switch(this.config.countedObject) {
+                case 'event':
+                    this.widget.add(this.config.eventValue);
+                    this.widget.requestSave(); //don't await the next save event before continuing
+                    break;
+                case 'amount':
+                    let amount = event.event.amount;
+                    switch(event.listener) {
+                        case 'follower-latest':
+                        case 'host-latest':
+                        case 'raid-latest':
+                            amount = 1;
+                            break;
+                        case 'subscriber-latest':
+                            switch(event.event.tier) {
+                                case '1000':
+                                    amount = 1;
+                                    break;
+                                case '2000':
+                                    amount = 2;
+                                    break;
+                                case '3000':
+                                    amount = 5;
+                                    break;
+                            }
+                        case 'cheer-latest':
+                        case 'tip-latest':
+                            //these stay as default;
+                            break;
+                    }
+                    this.widget.add(amount*this.config.extensionAmount);
+                    this.widget.requestSave();
+                    break;
+            }    
+        }
     }
 }
 
@@ -184,12 +252,12 @@ export default mixins;
     //             <div>
     //                 <h4>Counting</h4>
     //                 <div>
-    //                     <input type="radio" name="countedObject" v-model="config.countedObject" value="event" :id="config.moduleId + 'kofiSSE_countByEvent'"/>
-    //                     <label :for="config.moduleId + 'kofiSSE_countByEvent'">Event Occurence</label>
+    //                     <input type="radio" name="countedObject" v-model="config.countedObject" value="event" :id="config.moduleId + 'seWidgetEventHandler_countByEvent'"/>
+    //                     <label :for="config.moduleId + 'seWidgetEventHandler_countByEvent'">Event Occurence</label>
     //                 </div>
     //                 <div>
-    //                     <input type="radio" name="countedObject" v-model="config.countedObject" value="amount" :id="config.moduleId + 'kofiSSE_countByAmounted'"/>
-    //                     <label :for="config.moduleId + 'kofiSSE_countByAmount'">Donated Amount</label>
+    //                     <input type="radio" name="countedObject" v-model="config.countedObject" value="amount" :id="config.moduleId + 'seWidgetEventHandler_countByAmounted'"/>
+    //                     <label :for="config.moduleId + 'seWidgetEventHandler_countByAmount'">Donated Amount</label>
     //                 </div>
     //             </div>
     //         </form>

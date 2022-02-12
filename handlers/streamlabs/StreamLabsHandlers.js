@@ -33,14 +33,14 @@ class GeneralHandler extends EventHandler {
                         <div>
                             <h4>Platform:</h4>
                             <div v-for="(platform, platformId) of platforms">
-                                <input type="radio" name="eventPlatform" v-model="core.config.eventPlatform" :value="platformId" :id="'slEventPlatform_' + platformId"/>
+                                <input type="radio" name="eventPlatform" v-model="core.config.eventPlatform" value="{{platformId}}" :id="'slEventPlatform_' + platformId"/>
                                 <label :for="'slEventPlatform_' + platformId">{{platform.title}}</label>
                             </div>
                         </div>
                         <div>
                             <h4>Event Type</h4>
                             <div v-for="(eventTitle, eventId) of selectedPlatform.events">
-                                <input type="radio" name="eventType" v-model="core.config.eventType" :value="eventId" :id="'slEvent_' + eventId"/>
+                                <input type="radio" name="eventType" v-model="core.config.eventType" value="{{eventId}}" :id="'slEvent_' + eventId"/>
                                 <label :for="'slEvent_' + eventId">{{eventTitle}}</label>
                             </div>
                         </div>
@@ -94,7 +94,7 @@ class AccumulationHandler extends GeneralHandler {
                 <div>
                     <form action="" onsubmit="return false">
                         <label for="'slAccumValue_'+core.config.moduleId">Event Value (per event or monetary unit)</label>
-                        <input type="number" name="eventValue" v-model="core.config.eventValue" :value="core.config.eventValue" :id="'slAccumValue_'+core.config.moduleId"/>
+                        <input type="number" name="eventValue" v-model="core.config.eventValue" :id="'slAccumValue_'+core.config.moduleId"/>
                         </div>
                     </form>
                 </div>

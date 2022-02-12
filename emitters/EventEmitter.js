@@ -15,13 +15,7 @@ class EventEmitter extends Module {
 
         this.listeners = [];
     }
-
-    updateSettings() {
-        this.stop();
-        super.updateSettings();
-        this.start();
-    }
-
+    
     //for now listeners are simple callbacks of the forms (event) => {/*work*/};
     addListener(listener) {
         this.listeners.push(listener);

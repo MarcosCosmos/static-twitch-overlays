@@ -79,23 +79,21 @@ export default class BasicGoal extends Counter {
             template: `
                 <form action="" onsubmit="return false">
                     <label for="${this.moduleId}TotalOverride">
-                        <span style="color: red;">Warning: this action is cannot be undone</span>
-                        <br/>
                         Override the total value to:
                     </label>
                     <input name="totalOverride" id="${this.moduleId}TotalOverride" type="number" :step="config.step" :min="config.min" v-model="info.totalValue"/>
                 </form>
             `,
             watch: {
-                'info.totalValue': function() {
-                    self.requestSave();
-                },
+                // 'info.totalValue': function() {
+                //     self.requestSave();
+                // },
                 'info.currentValue': function(value) {
                     let oldTimesReached = this.info.goalsReached;
                     self.checkGoalReached();
-                    if(value != this.info.currentValue || oldTimesReached != this.info.goalsReached) {
-                        self.requestSave();
-                    }
+                    // if(value != this.info.currentValue || oldTimesReached != this.info.goalsReached) {
+                    //     self.requestSave();
+                    // }
                 }
             }
         });

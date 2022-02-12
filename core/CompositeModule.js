@@ -13,6 +13,8 @@ import Timer from '../widgets/Timer.js';
 import KofiViaSSEScanner from '../emitters/sse/KofiViaSSEScanner.js';
 import KofiViaSSEScannerHandlers from '../handlers/sse/KofiViaSSEScannerHandlers.js';
 import StreamLabsHandlers from '../handlers/streamlabs/StreamLabsHandlers.js';
+import StreamElementsWidgetEventListener from '../emitters/streamelements/StreamElementsWidgetEventListener.js';
+import StreamElementsWidgetEventHandlers from '../handlers/streamelements/StreamElementsWidgetEventHandlers.js';
 
 let widgetTypes = {
     goal: {
@@ -38,6 +40,10 @@ let serviceTypes = {
         title: 'Streamlabs',
         constructor: StreamlabsSocket
     },
+    streamelements: {
+        title: 'Stream Elements',
+        constructor: StreamElementsWidgetEventListener
+    },
     tiltify: {
         title: 'Tiltify',
         constructor: TiltifyScanner
@@ -54,6 +60,7 @@ let serviceTypes = {
 
 let handlerTypes = {
     streamlabs: StreamLabsHandlers,
+    streamelements: StreamElementsWidgetEventHandlers,
     tiltify: TiltifyHandlers,
     chatBot: ChatBotHandlers,
     kofiViaSSE: KofiViaSSEScannerHandlers

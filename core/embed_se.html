@@ -11,6 +11,8 @@
                 config.boxToShow = 'display';
                 initialise(config, !(obj.detail.overlay.isEditorMode),'https://marcoscosmos.gitlab.io/static-twitch-overlays');
             });
+
+            //todo: could update widget on kvstore updates now but will need to determine if there are circular call issues/maybe avoid double-updating?
         </script>
     </head>
     <body>

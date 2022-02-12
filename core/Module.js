@@ -99,7 +99,7 @@ class ModuleBase {
             }
         );
 
-         //todo: consider if this should become static in some way and have the result passed as a constructor? it'll be easier to do it this way for now but the alternative would be more performant.
+         //todo: consider if this should become static in some way and have the text passed as a constructor? it'll be easier to do it this way for now but the alternative would be more performant.
     }
     
     async generateBoxes() {
@@ -144,15 +144,23 @@ class ModuleBase {
             data: () => coreData,
             template: `
                 <form action="" onsubmit="return false">
-                    <div>
+                    <div class="configBox">
                         <span style="color: red;">Warning: this action is cannot be undone</span>
+                        &nbsp;
                         <button type="button" class="eraseButton" v-on:click="eraseData">Erase Data</button>
+                    </div>
+
+                    <div class="configBox">
+                        <button type="button" class="saveButton" v-on:click="saveData">Save Data</button>
                     </div>
                 </form>
             `,
             methods: {
                 async eraseData() {
                     self.eraseData();
+                },
+                saveData() {
+                    self.requestSave();
                 }
             }
         });
@@ -206,8 +214,16 @@ class ModuleBase {
         return await this.requestSave();
     }
     
-    loadInfo() {
-       return this.getItems(this.info);
+    /**
+     * Optional parameter, will be taken from storage if either null or undefined (parsing a non-object will cause errors)
+     */
+    async loadInfo(data) {
+       if(typeof data === 'null' || typeof data === 'undefined') {
+           data = await this.getItems(this.config.defaultData);
+       }
+       if(data) {
+           Module.assigningDeepMixin(this.info, data);
+       }
     }
 
 
@@ -236,14 +252,19 @@ class ModuleBase {
             this.isSavePending = true;
             let [promise, nextLock] = this.saveLock.lease();
             this.saveLock = nextLock;
+            //this is where we wait for the existing save to complete.
             let saveLease = await promise;
+
             await this.dataLock; //only save if the datalock is in a resolved state; but also because we are re-entrant, we have no need to prevent data from being changed between starting the store and having the store finish.
             try {
-                this.storeItems(this.info);
-                this.isSavePending = false;
-                setTimeout(() => {
+                let storePromise = this.storeItems(this.info);
+                if(Module.isInManualMode) {
                     saveLease.release();
-                }, this.inManualMode ? 0 : this.config.saveCooldown);  
+                } else {   
+                    setTimeout(() => saveLease.release(), this.config.saveCooldown);
+                }
+                this.isSavePending = false;
+                await storePromise; //now wait for the storage to finish before returning/resolving the function's promise
                 return true;
             } catch(e) {
                 saveLease.break(e);
@@ -267,43 +288,53 @@ class ModuleBase {
     }
 }
 
-
-class LocalStorageModule extends ModuleBase {
+class GeneralStorageModule extends ModuleBase {
     /**
-     * replaces existing values with those in local storage, where it exists
-     * @param Object destination
-     * Note: this method can only safely deal with JSON-compatible data
+     * Extracts data from a jsonified object of jsonified values (this format is used primarily for compatiblity with SE storage)
      */
-    async getItems(destination) {
-        let tmp = await localStorage.getItem(`${this.config.moduleId}.info`); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
-        if(tmp != null) {
-            tmp = JSON.parse(tmp);
-            for(let eachName in destination) {
-                if(typeof tmp[eachName] !== 'undefined' && tmp[eachName] !== null) {
-                    destination[eachName] = JSON.parse(tmp[eachName]);
+    extractData(text) {
+        let result;
+        if(text !== null) {
+            result = JSON.parse(text);
+            for(let eachName in result) {
+                if(typeof result[eachName] !== 'undefined' && result[eachName] !== null) {
+                    result[eachName] = JSON.parse(result[eachName]);
                 }
             }
         }
+        return result;
+    }
+}
+
+class LocalStorageModule extends GeneralStorageModule {
+    /**
+     * loads items from storage
+     * Note: this method can only safely deal with JSON-compatible data
+     */
+    async getItems(expected) {
+        let text = (await localStorage.getItem(`${this.config.moduleId}.info`));
+        let result = this.extractData(text || null); //keep this ${this.config.moduleId}${eachName} format for backward compatibility?
 
         //collect any legacy format data - once off, erases so it won't override a second time.
-        for(let eachName in destination) {
+        for(let eachName in expected) {
             let tmp = await localStorage.getItem(`${this.config.moduleId}${eachName}`);
             if(typeof tmp !== 'undefined' && tmp !== null) {
-                destination[eachName] = JSON.parse(tmp);
+                result[eachName] = JSON.parse(tmp);
                 await localStorage.removeItem(`${this.config.moduleId}${eachName}`);
             }
         }
+        return result;
     }
-
+    
     /**
      * 
      * @param Object destination
      * Note: this method can only safely deal with JSON-compatible data
      */
-    async storeItems(destination) {
+    async storeItems(data) {
         let payload = {};
-        for(let eachName in destination) {
-            let eachTmp = destination[eachName];
+        for(let eachName in data) {
+            let eachTmp = data[eachName];
             if(typeof eachTmp !== 'undefined' && eachTmp !== null) {
                 payload[eachName] = JSON.stringify(eachTmp);
             }
@@ -313,21 +344,14 @@ class LocalStorageModule extends ModuleBase {
     }
 }
 
-class SEStorageModule extends ModuleBase {
+class SEStorageModule extends GeneralStorageModule {
     /**
      * replaces existing values with those in local storage, where it exists
      * @param Object destination
      * Note: this method can only safely deal with JSON-compatible data
      */
-    async getItems(destination) {
-        let tmp = await SE_API.store.get(`${this.config.moduleId}.info`) || null;
-        if(tmp != null) {
-            for(let eachName in destination) {
-                if(typeof tmp[eachName] !== 'undefined' && tmp[eachName] !== null) {
-                    destination[eachName] = JSON.parse(tmp[eachName]);
-                }
-            }
-        }
+    async getItems() {
+        return this.extractData((await SE_API.store.get(`${this.config.moduleId}.info`)) || null);
     }
 
     /**
@@ -335,10 +359,10 @@ class SEStorageModule extends ModuleBase {
      * @param Object destination
      * Note: this method can only safely deal with JSON-compatible data
      */
-    async storeItems(destination) {
+    async storeItems(data) {
         let payload = {};
-        for(let eachName in destination) {
-            let eachTmp = destination[eachName];
+        for(let eachName in data) {
+            let eachTmp = data[eachName];
             payload[eachName] = (typeof eachTmp === 'number' || typeof eachTmp === 'boolean' || typeof eachTmp === 'string' ? eachTmp : JSON.stringify(eachTmp));
         }
         await SE_API.store.set(`${this.config.moduleId}.info`, payload);

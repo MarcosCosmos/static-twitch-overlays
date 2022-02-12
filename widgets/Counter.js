@@ -24,18 +24,16 @@ class Counter extends BasicDisplay {
             template: `
                 <form action="" onsubmit="return false">
                     <label :for="config.moduleId + 'CurrentOverride'">
-                        <span style="color: red;">Warning: this action is cannot be undone</span>
-                        <br/>
                         Override the current value to:
                     </label>
                     <input name="currentOverride" :id="config.moduleId + 'CurrentOverride'" type="number" :step="config.step" :min="config.min" v-model="info.currentValue"/>
                 </form>
             `,
-            watch: {
-                'info.currentValue': async function() {
-                    self.requestSave();
-                }
-            }
+            // watch: {
+            //     'info.currentValue': async function() {
+            //         self.requestSave();
+            //     }
+            // }
             
         });
     }

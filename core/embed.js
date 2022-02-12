@@ -1,4 +1,5 @@
 import CompositeModule from './CompositeModule.js';
+import Module from './Module.js';
 
 async function loadTheme(themeName, baseUrl) {
     let themeJsUrl = `${baseUrl}/themes/${themeName}/displays.js`;
@@ -41,14 +42,7 @@ async function spawnApp(theModule, displayBox, start) {
         }
         default: {
             if(theModule.config.boxToShow == 'controls') {
-                theModule.isInManualMode = true;
-                theModule.widget.isInManualMode = true;
-                for(let each of Object.values(theModule.services)) {
-                    each.isInManualMode = true;
-                }
-                for(let each of Object.values(theModule.handlers)) {
-                    each.isInManualMode = true;
-                }
+                Module.isInManualMode = true;
             }
             const app = Vue.createApp({
                 data() {
@@ -81,7 +75,8 @@ async function initialise(config, start=true, baseUrl='https://marcoscosmos.gitl
     let displayBoxes = await loadTheme(config.widget.theme, baseUrl);
     let displayBox = await (displayBoxes[config.widget.moduleTypeName].bind(theModule.widget))();
     
-    spawnApp(theModule, displayBox, start);
+    await spawnApp(theModule, displayBox, start);
+    return theModule;
 };
 
 export {initialise as default, loadTheme, spawnApp};
