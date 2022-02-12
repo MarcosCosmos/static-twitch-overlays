@@ -352,7 +352,12 @@ class SEStorageModule extends GeneralStorageModule {
      * Note: this method can only safely deal with JSON-compatible data
      */
     async getItems() {
-        return this.extractData((await SE_API.store.get(`${this.config.moduleId}.info`)) || null);
+        let result = await SE_API.store.get(`${this.config.moduleId}.info`);
+        if(result) {
+            return this.extractData(result);
+        } else {
+            return null;
+        }
     }
 
     /**
